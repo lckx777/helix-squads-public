@@ -1,12 +1,11 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "helix-squads-public",
-  "description": "Helix Squads — Public Marketplace for Claude Code. Infrastructure and meta-tooling squads (cartographer, claude-code-mastery, incident-response-squad, stack-auditors, synthetic-intelligence-factory, nirvana-squad-creator, nirvana-context-enricher, oracle-supreme-squad).",
   "owner": {
     "name": "Luca Pimenta",
     "email": "lckx777@users.noreply.github.com"
   },
   "metadata": {
+    "description": "Helix Squads — Public Marketplace for Claude Code. Infrastructure and meta-tooling squads (cartographer, claude-code-mastery, incident-response-squad, stack-auditors, synthetic-intelligence-factory, nirvana-squad-creator, nirvana-context-enricher, oracle-supreme-squad).",
     "version": "0.1.0"
   },
   "plugins": [
