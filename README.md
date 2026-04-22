@@ -13,49 +13,66 @@ claude plugin install <plugin-name>@helix-squads-public
 After install, list available plugins:
 
 ```
-claude plugin marketplace info helix-squads-public
+claude plugin marketplace update helix-squads-public
+claude plugin list
 ```
 
 ## Plugins
 
-This marketplace hosts the following squads (status column shows which are
-already migrated from the source-of-truth at `~/.claude/skills/squads/squads/`):
+| Plugin | Purpose | Version |
+|--------|---------|---------|
+| `cartographer` | Ecosystem archaeology — REUSE > ADAPT > CREATE | 1.0.0 |
+| `claude-code-mastery` | Claude Code full-spectrum expertise (hooks, skills, MCP, plugins) | 1.0.0 |
+| `incident-response-squad` | DevOps/SRE incident response — logs, RCA, runbooks, post-mortems | 1.0.0 |
+| `nirvana-context-enricher` | Parallel multi-agent context enrichment for architectural briefings | 1.0.0 |
+| `nirvana-squad-creator` | Generate AIOS squads from natural language (9-phase pipeline) | 1.0.0 |
+| `oracle-supreme-squad` | Extract DNA of Claude Code — transcendent meta-analysis squad | 4.0.0 |
+| `stack-auditors` | Celebrity-engineer mentor council for L4 evidence-based audits | 1.0.0 |
+| `synthetic-intelligence-factory` | Meta-system to manufacture synthetic intelligences from any domain | 1.2.0 |
 
-| Plugin | Purpose | Agents | Status |
-|--------|---------|-------:|--------|
-| `stack-auditors` | Celebrity-engineer mentor council for L4 audit | 12 | ✅ v1.0.0 |
-| `cartographer` | Ecosystem archaeology — IDS (REUSE > ADAPT > CREATE) | 7 | 🚧 planned |
-| `claude-code-mastery` | Claude Code full-spectrum expertise (hooks, skills, MCP) | 8 | 🚧 planned |
-| `incident-response-squad` | DevOps/SRE incident response | 5 | 🚧 planned |
-| `synthetic-intelligence-factory` | Meta-system for synthetic expertise extraction | 6 | 🚧 planned |
-| `nirvana-squad-creator` | Squad generator from natural language | 9 | 🚧 planned |
-| `nirvana-context-enricher` | Parallel multi-agent context enrichment | 5 | 🚧 planned |
-| `oracle-supreme-squad` | Claude Code DNA extraction | 5 | 🚧 planned |
+## How plugins work
 
-## How it works
+Each plugin namespaces its skills: `/plugin-name:skill-name`. Agents keep their
+original names but are scoped per-plugin. See the Claude Code plugin docs:
+<https://code.claude.com/docs/en/plugins>.
 
-Each plugin is a self-contained directory under `plugins/` with its own
-`.claude-plugin/plugin.json` manifest, agents, skills, commands, and workflows.
+Typical invocations after install:
 
-The `marketplace.json` at the repo root lists all available plugins with
-their metadata and `source: "./plugins/<name>"` relative paths.
+```
+# Skills (model-invoked via natural language in a session)
+"Use the stack-auditors council to audit my architecture decision"
+"Run cartographer to detect drift in my repository"
 
-When Claude Code installs a plugin, it copies that directory to a local cache
-and namespaces the skills (e.g., `/stack-auditors:audit` instead of `/audit`)
-to prevent conflicts.
+# Slash commands
+/stack-auditors:single-audit-chain
+/cartographer:detect-drift
+```
 
-## Source of Truth
+## Source of truth
 
-The canonical squads live at `~/.claude/skills/squads/squads/` on the
-maintainer's machine. This marketplace is generated from there via
-`scripts/sync-from-sot.sh` and validated by CI before release.
+Plugins here are generated from the maintainer's SoT at
+`~/.claude/skills/squads/squads/<name>/` via
+`scripts/convert-squad-to-plugin.py`. See `AGENTS.md` for the maintenance
+flow.
 
-## Companion marketplace
+## Statistics
 
-See [`helix-squads-private`](https://github.com/lckx777/helix-squads-private)
-for proprietary squads (copy-chief, brandcraft-nirvana, content-radar, etc.).
-That marketplace requires authentication; this one is zero-config.
+- **8 plugins**
+- **57 agents**
+- **74 skills**
+- **8 slash commands**
+- **3.2 MB** total install size
+- **End-to-end validated** — each plugin installs and loads correctly in
+  Claude Code 2.1.117+.
+
+## Validation
+
+This marketplace passes:
+
+- `python3 scripts/validate-plugins.py` (custom schema checks)
+- `claude plugin validate .` (official CLI validator)
+- End-to-end install test via `claude plugin install <name>@helix-squads-public`
 
 ## License
 
-MIT — see LICENSE.
+MIT. See `LICENSE`.
