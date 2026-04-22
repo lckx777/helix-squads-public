@@ -1,0 +1,302 @@
+name: "cartographer"
+version: 1.0.0
+description: "Cartographer — Ecosystem archaeology squad. Continuously excavates the monorepo, catalogs all artifacts (functions, agents, workflows, schemas, hooks, MCPs), maps real dependencies, and exposes this via CLI+MCP so every agent queries BEFORE acting. Enforces IDS: REUSE > ADAPT > CREATE."
+author: "lucac"
+license: MIT
+slashPrefix: cart
+
+aios:
+  minVersion: "2.1.0"
+  type: squad
+
+orchestrator: cart-surveyor
+
+tiers:
+  opus:
+    - cart-surveyor   # @surveyor — PM/orchestrator, conflict resolution, prioritization
+    - cart-keeper     # @graph-keeper — graph curator, drift detection, pgvector writes
+    - cart-oracle     # @oracle — query layer, CLI+MCP exposure, report generation
+  sonnet:
+    - cart-ts-digger  # @ts-digger — TypeScript excavator (packages/**)
+    - cart-py-digger  # @py-digger — Python excavator (hooks/**, scripts/**, mega-brain/**)
+    - cart-yaml-digger  # @yaml-digger — Config excavator (squad.yaml, agents/*.md, workflows)
+    - cart-sql-digger   # @sql-digger — Schema excavator (supabase/migrations/**, RLS)
+
+sub_squads:
+  - id: excavation
+    name: "EXCAVATION — Language Diggers"
+    icon: "⛏️"
+    agents: [cart-ts-digger, cart-py-digger, cart-yaml-digger, cart-sql-digger]
+  - id: graph
+    name: "GRAPH — Knowledge Graph"
+    icon: "🕸️"
+    agents: [cart-keeper]
+  - id: query
+    name: "QUERY — Oracle Layer"
+    icon: "🔮"
+    agents: [cart-oracle]
+  - id: operations
+    name: "OPERATIONS — Orchestration"
+    icon: "🧠"
+    agents: [cart-surveyor]
+
+components:
+  agents:
+    - cart-surveyor.md
+    - cart-ts-digger.md
+    - cart-py-digger.md
+    - cart-yaml-digger.md
+    - cart-sql-digger.md
+    - cart-keeper.md
+    - cart-oracle.md
+  tasks:
+    - index-typescript.md
+    - index-python.md
+    - index-yaml.md
+    - index-sql.md
+    - build-graph.md
+    - query-graph.md
+    - enforce-reuse.md
+    - detect-drift.md
+    - generate-report.md
+  chains:
+    - chains/incremental-index-chain.yaml
+    - chains/query-before-create-chain.yaml
+    - chains/full-reindex-chain.yaml
+  checklists:
+    - checklists/excavation-gate.md
+    - checklists/graph-integrity-gate.md
+    - checklists/reuse-enforcement-gate.md
+  config:
+    - config/digger-base-contract.md
+    - config/source-tree.md
+
+gates:
+  - name: excavation
+    checklist: checklists/excavation-gate.md
+    enforcer: cart-surveyor
+  - name: graph-integrity
+    checklist: checklists/graph-integrity-gate.md
+    enforcer: cart-keeper
+    pre_requisite: excavation
+  - name: reuse-enforcement
+    checklist: checklists/reuse-enforcement-gate.md
+    enforcer: cart-oracle
+    pre_requisite: graph-integrity
+
+routing:
+  index-ts:       [cart-ts-digger]
+  index-py:       [cart-py-digger]
+  index-yaml:     [cart-yaml-digger]
+  index-sql:      [cart-sql-digger]
+  build-graph:    [cart-keeper]
+  query:          [cart-oracle]
+  enforce-reuse:  [cart-oracle]
+  detect-drift:   [cart-keeper]
+  orchestrate:    [cart-surveyor]
+
+execution_model:
+  default: yolo
+  modes:
+    yolo: "Sequential inline persona swaps — zero human pauses, full visibility, specialist enforcement preserved"
+    interactive: "Same as yolo but pauses between steps for human confirmation"
+  reference: "docs/guides/yolo-execution-model.md"
+
+modes:
+  incremental-index:
+    description: "Index only changed files since last run (PostToolUse trigger)"
+    agents: [cart-ts-digger, cart-py-digger, cart-yaml-digger, cart-sql-digger, cart-keeper]
+    pipeline:
+      - chains/incremental-index-chain.yaml
+    gates: [excavation, graph-integrity]
+    gate_threshold: 7.0
+  full-reindex:
+    description: "Full monorepo excavation — runs weekly or on demand"
+    agents: [cart-surveyor, cart-ts-digger, cart-py-digger, cart-yaml-digger, cart-sql-digger, cart-keeper, cart-oracle]
+    pipeline:
+      - chains/full-reindex-chain.yaml
+    gates: [excavation, graph-integrity, reuse-enforcement]
+    gate_threshold: 8.0
+  query:
+    description: "Query-only — no excavation. Oracle answers questions from existing graph."
+    agents: [cart-oracle]
+    pipeline: []
+    gates: []
+
+# IDS Enforcement — REUSE > ADAPT > CREATE
+ids_enforcement:
+  enabled: true
+  hook: ".claude/hooks/cartographer-ids-check.cjs"  # future — see @sm stories
+  pre_create_check: true
+  warn_threshold: 0.75   # similarity above this = WARN (near-duplicate)
+  block_threshold: 0.95  # similarity above this = BLOCK (duplicate)
+  mcp_tool: "find_artifact"  # cartographer-mcp (future)
+
+# Storage backend (future — see @sm stories)
+storage:
+  backend: supabase_pgvector
+  schema: cartographer  # separate schema, not public
+  tables:
+    - artifacts
+    - dependencies
+    - digger_runs
+    - drift_events
+
+# MCP exposure (future — see @sm stories)
+mcp_tools:
+  package: "packages/cartographer-mcp/"
+  tools:
+    - find_artifact
+    - trace_dependencies
+    - check_before_create
+    - detect_conflicts
+    - semantic_search
+
+cross_squad_consumers:
+  - squad: "copy-chief"
+    consumes: [find_artifact, check_before_create]
+    reason: "Before creating new copy templates or tasks, verify existing ones"
+  - squad: "roteiro-factory"
+    consumes: [find_artifact, check_before_create]
+    reason: "Before adding new client templates, check existing pattern coverage"
+  - squad: "fabrica-de-genios"
+    consumes: [find_artifact]
+    reason: "DNA extraction cross-references existing mind-clone patterns"
+
+tags:
+  - aiox
+  - aiox
+  - squad
+  - squad
+  - ecosystem
+  - ecosystem
+  - archaeology
+  - archaeology
+  - knowledge-graph
+  - knowledge-graph
+  - IDS
+  - IDS
+  - reuse
+  - reuse
+  - dependency-mapping
+  - dependency-mapping
+  - artifact-catalog
+  - artifact-catalog
+
+
+ux_hints:
+  branding:
+    brand_name: "Cartographer"
+    tagline: "Ecosystem nervous system — excavate, catalog, map, enforce IDS"
+    icon: "map"
+    accent_color: "#10b981"
+  landing:
+    sections:
+      - type: "context_summary"
+        title: "What this does"
+        description: "Excavate → Catalog → Map → Enforce IDS"
+        bullets:
+          - "7 specialized agents (1 orchestrator, 4 diggers, 1 graph-keeper, 1 oracle)"
+          - "Polyglot: TypeScript, Python, YAML, SQL"
+          - "IDS enforcement: REUSE > ADAPT > CREATE"
+          - "Query layer: CLI + MCP for any agent to consult"
+      - type: "action_card"
+        title: "Full Reindex"
+        description: "Complete monorepo excavation — all languages, all artifacts"
+        cta: "Start reindex"
+        href: "/apps/cartographer/modes/full-reindex"
+        icon: "refresh-cw"
+        requires: ["pipeline:execute"]
+      - type: "action_card"
+        title: "Query Oracle"
+        description: "Ask the ecosystem what already exists before creating"
+        cta: "Query"
+        href: "/apps/cartographer/modes/query"
+        icon: "search"
+        requires: ["intel:read"]
+  modes:
+    - name: "full-reindex"
+      label: "Full Reindex"
+      icon: "refresh-cw"
+      requires: ["pipeline:execute"]
+    - name: "query"
+      label: "Query"
+      icon: "search"
+      requires: ["intel:read"]
+
+profiles:
+  admin:
+    description: "Full access — run excavations, query graph, manage schema."
+    capabilities:
+      - "pipeline:execute"
+      - "pipeline:approve"
+      - "content:read"
+      - "content:write"
+      - "intel:read"
+      - "admin:manage"
+  operator:
+    description: "Run excavations and queries."
+    capabilities:
+      - "pipeline:execute"
+      - "content:read"
+      - "intel:read"
+  viewer:
+    description: "Query only — read existing artifact catalog."
+    capabilities:
+      - "intel:read"
+
+# v3 state — checkpoint dir per-project
+state:
+  enabled: true
+  storage: file
+  checkpoint_dir: "${PROJECT_CWD:-$PWD}/.squad-state/cartographer"
+  resume: true
+  retention: 10
+
+# v3 model_strategy — prevent silent downgrade
+model_strategy:
+  orchestrator: "claude-opus-4-7"
+  workers: "claude-sonnet-4-6"
+  reviewers: "claude-opus-4-7"
+  override: true
+
+# v3 harness — deterministic enforcement layer (was prompt-level)
+harness:
+  doom_loop:
+    enabled: true
+    max_identical_outputs: 3
+    similarity_threshold: 0.95
+    max_step_retries: 5
+    on_detect: abort
+    cooldown_seconds: 0
+  ralph_loop:
+    enabled: true
+    max_iterations: 5
+    persist_state: true
+  context_compaction:
+    enabled: true
+    strategy: key-fields
+    max_handoff_tokens: 4000
+    preserve_schema_fields: true
+  filesystem_collaboration:
+    enabled: true
+    artifact_dir: "${PROJECT_CWD:-$PWD}/.squad-state/artifacts"
+    cleanup: manual
+  traces:
+    enabled: true
+    level: standard
+    include_outputs: false
+  self_verify:
+    default_enabled: true
+  quality_framework:
+    enabled: true
+    threshold: 7.0
+    dimensions:
+      accuracy:  { weight: 1.0, threshold: 7.0, veto: true }
+      coherence: { weight: 0.9, threshold: 7.0, veto: false }
+
+# Portability — distinguishes global vs per-project assets
+portability:
+  global_home: "${SQUAD_HOME:-$HOME/.claude/skills/squads/squads/cartographer}"
+  project_data_path: "${PROJECT_CWD:-$PWD}"
+  resolved_by: "scripts/install-squads-to-global.sh"

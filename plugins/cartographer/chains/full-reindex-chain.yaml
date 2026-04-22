@@ -1,0 +1,83 @@
+# Full Reindex Chain
+# Triggered by: explicit *cart-reindex --full or weekly cron
+# Runs complete excavation of all languages, regardless of file changes
+
+name: full-reindex-chain
+version: 1.0.0
+description: "Full monorepo excavation across all languages — runs weekly or on demand after major changes"
+trigger:
+  type: [on_demand, scheduled]
+  schedule: "weekly"  # future: cron integration
+  manual_command: "*cart-reindex --full"
+auto_handoff: true
+
+steps:
+  - id: reindex-announce
+    agent: cart-surveyor
+    task: null
+    description: "Log reindex start, create run_id, validate preconditions"
+    auto_handoff: true
+
+  - id: index-ts-full
+    agent: cart-ts-digger
+    task: index-typescript
+    description: "Full TS excavation — all packages"
+    args:
+      run_mode: full
+    auto_handoff: true
+
+  - id: index-py-full
+    agent: cart-py-digger
+    task: index-python
+    description: "Full Python excavation — all hooks, scripts, mega-brain"
+    args:
+      run_mode: full
+    parallel_with: [index-ts-full]
+    auto_handoff: true
+
+  - id: index-yaml-full
+    agent: cart-yaml-digger
+    task: index-yaml
+    description: "Full YAML excavation — all squads, agents, chains"
+    args:
+      run_mode: full
+    parallel_with: [index-ts-full, index-py-full]
+    auto_handoff: true
+
+  - id: index-sql-full
+    agent: cart-sql-digger
+    task: index-sql
+    description: "Full schema excavation — all migrations"
+    args:
+      run_mode: full
+    parallel_with: [index-ts-full, index-py-full, index-yaml-full]
+    auto_handoff: true
+
+  - id: build-full-graph
+    agent: cart-keeper
+    task: build-graph
+    description: "Build complete graph from all digger outputs"
+    depends_on: [index-ts-full, index-py-full, index-yaml-full, index-sql-full]
+    gate: excavation
+    auto_handoff: true
+
+  - id: generate-health-report
+    agent: cart-oracle
+    task: generate-report
+    description: "Generate full health report after reindex"
+    args:
+      report_type: full
+      output_format: md
+    depends_on: [build-full-graph]
+    gate: graph-integrity
+    auto_handoff: false  # human reads the report
+
+gates:
+  - step: build-full-graph
+    checklist: checklists/excavation-gate.md
+    enforcer: cart-surveyor
+    required: true
+  - step: generate-health-report
+    checklist: checklists/graph-integrity-gate.md
+    enforcer: cart-keeper
+    required: true

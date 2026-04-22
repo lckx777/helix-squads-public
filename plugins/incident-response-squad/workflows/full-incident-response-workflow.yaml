@@ -1,0 +1,75 @@
+workflow_name: full_incident_response
+description: "Pipeline completo de resposta a incidentes — do alerta ao post-mortem blameless, integrando análise de logs, correlação de causa raiz, execução de runbooks, comunicação de status e geração de post-mortem"
+
+agent_sequence:
+  - log-analyzer
+  - root-cause-correlator
+  - runbook-executor
+  - status-page-updater
+  - postmortem-writer
+
+key_commands:
+  - "*respond-incident"
+  - "*incident-full"
+
+trigger_threshold: 1
+typical_duration: "30-90 minutes"
+
+success_indicators:
+  - "Logs analisados — anomalias identificadas e priorizadas"
+  - "Causa raiz identificada com confidence score >= 50%"
+  - "Blast radius mapeado"
+  - "Runbook executado — remediação validada"
+  - "Status page atualizado — stakeholders notificados dentro do SLA"
+  - "Post-mortem blameless gerado com action items"
+
+transitions:
+  logs_analyzed:
+    trigger: "Análise de logs completa — anomalias identificadas e log-analysis-report.md gerado"
+    confidence: 0.90
+    greeting_message: "📋 Logs analisados. Iniciando correlação de causa raiz."
+    next_steps:
+      - command: "*correlate-signals"
+        args_template: "--loganalysis=log-analysis-report.md"
+        description: "Correlacionar sinais de múltiplas ferramentas para identificar causa raiz"
+        priority: 1
+
+  root_cause_identified:
+    trigger: "Causa raiz identificada — root-cause-report.md gerado com confidence score"
+    confidence: 0.90
+    greeting_message: "🔍 Causa raiz identificada. Executando runbook de remediação."
+    next_steps:
+      - command: "*execute-runbook"
+        args_template: "--runbook={suggested_runbook} --target={affected_service}"
+        description: "Executar runbook de remediação baseado na causa raiz"
+        priority: 1
+
+  remediation_complete:
+    trigger: "Runbook executado — remediação validada com métricas de saúde"
+    confidence: 0.95
+    greeting_message: "⚡ Remediação executada. Atualizando status page."
+    next_steps:
+      - command: "*update-status"
+        args_template: "--severity={severity} --status=monitoring --message={resolution_message}"
+        description: "Atualizar status page com resultado da remediação"
+        priority: 1
+
+  status_communicated:
+    trigger: "Status page atualizado — stakeholders notificados"
+    confidence: 0.95
+    greeting_message: "📢 Status comunicado. Gerando post-mortem blameless."
+    next_steps:
+      - command: "*write-postmortem"
+        args_template: "--incident={incident_id}"
+        description: "Gerar post-mortem blameless completo do incidente"
+        priority: 1
+
+  postmortem_complete:
+    trigger: "Post-mortem gerado — postmortem.md com action items e lições aprendidas"
+    confidence: 0.95
+    greeting_message: "📝 Resposta ao incidente completa. Post-mortem disponível para review."
+    next_steps:
+      - command: "*update-status"
+        args_template: "--severity={severity} --status=resolved --message=Incidente resolvido"
+        description: "Marcar incidente como resolvido no status page"
+        priority: 1

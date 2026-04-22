@@ -1,0 +1,51 @@
+workflow_name: rapid_triage
+description: "Triagem rápida de incidentes — análise de logs, correlação de causa raiz e comunicação inicial de status. Pula execução de runbook e post-mortem para resposta mais ágil."
+
+agent_sequence:
+  - log-analyzer
+  - root-cause-correlator
+  - status-page-updater
+
+key_commands:
+  - "*triage-incident"
+  - "*quick-triage"
+
+trigger_threshold: 1
+typical_duration: "10-20 minutes"
+
+success_indicators:
+  - "Logs analisados — anomalias identificadas"
+  - "Causa raiz identificada ou hipótese formulada"
+  - "Status page atualizado com informação inicial"
+  - "Stakeholders notificados sobre investigação"
+
+transitions:
+  logs_analyzed:
+    trigger: "Análise de logs completa — anomalias identificadas"
+    confidence: 0.90
+    greeting_message: "📋 Logs analisados. Correlacionando causa raiz."
+    next_steps:
+      - command: "*find-root-cause"
+        args_template: "--incident={incident_description}"
+        description: "Identificar causa raiz mais provável"
+        priority: 1
+
+  root_cause_identified:
+    trigger: "Causa raiz identificada ou hipótese formulada com confidence score"
+    confidence: 0.85
+    greeting_message: "🔍 Causa raiz identificada. Comunicando status."
+    next_steps:
+      - command: "*update-status"
+        args_template: "--severity={severity} --status=identified --message={root_cause_summary}"
+        description: "Comunicar causa raiz identificada aos stakeholders"
+        priority: 1
+
+  triage_complete:
+    trigger: "Status comunicado — triagem concluída"
+    confidence: 0.95
+    greeting_message: "📢 Triagem completa. Causa raiz comunicada. Use *respond-incident para pipeline completo com remediação e post-mortem."
+    next_steps:
+      - command: "*execute-runbook"
+        args_template: "--runbook={suggested_runbook} --target={affected_service}"
+        description: "Opcional: executar remediação se desejado"
+        priority: 2

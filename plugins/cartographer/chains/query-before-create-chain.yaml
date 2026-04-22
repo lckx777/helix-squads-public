@@ -1,0 +1,27 @@
+# Query Before Create Chain
+# Triggered by: IDS enforcement hook (future PreToolUse) or explicit *cart-check
+# Enforces REUSE > ADAPT > CREATE before any new artifact is created
+
+name: query-before-create-chain
+version: 1.0.0
+description: "IDS enforcement chain — query oracle before any CREATE operation"
+trigger:
+  type: [on_demand, pre_tool_use]  # pre_tool_use: future hook
+  manual_command: "*cart-check <description> --type <kind>"
+auto_handoff: true
+
+steps:
+  - id: ids-check
+    agent: cart-oracle
+    task: enforce-reuse
+    description: "IDS check — find existing artifacts matching proposed creation"
+    auto_handoff: false  # verdict is returned to caller
+
+# Note: This chain is intentionally minimal — it's a query chain, not an execution chain.
+# The caller (any @dev, @sm, @po action) receives the verdict and acts accordingly.
+# cart-surveyor logs CREATE overrides to .run/ids-overrides.yaml when similarity >= 0.75.
+
+override_protocol:
+  condition: "verdict == ADAPT or REUSE and human wants CREATE anyway"
+  action: "cart-surveyor logs override to .run/ids-overrides.yaml with rationale"
+  required_fields: [caller_agent, proposed_artifact, similarity_score, override_rationale]

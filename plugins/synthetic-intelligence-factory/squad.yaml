@@ -1,0 +1,109 @@
+# Forged in the crucible. Every edge case earned, not assumed.
+name: synthetic-intelligence-factory
+version: 1.2.0
+description: "Meta-system that manufactures specialized AI intelligences from any professional domain. Distills elite expertise (top 0.1%) through systematic extraction and 7-layer cognitive architecture engineering. Produces system prompts (15k-25k words), knowledge bases (50-200 docs), and contextual calibration forms."
+slashPrefix: sif
+
+aios:
+  minVersion: "0.3.0"
+  type: squad
+
+components:
+  agents:
+    - factory.md
+    - extractor.md
+    - assembler.md
+    - validator.md
+    - calibrator.md
+    - meta.md
+  tasks:
+    - extract-expertise.md
+    - assemble-intelligence.md
+    - validate-intelligence.md
+    - calibrate-intelligence.md
+  workflows:
+    - full-pipeline.yaml
+    - evolution-cycle.yaml
+  config:
+    - seven-layer-template.md
+    - quality-standards.md
+
+metadata:
+  author: l0z4n0
+  license: MIT
+  tags:
+    - meta-system
+    - prompt-engineering
+    - cognitive-architecture
+    - expertise-distillation
+    - synthetic-intelligence
+    - knowledge-engineering
+    - system-prompt-generation
+  category: ai-engineering
+  pricing: free
+# ---
+# Forged by l0z4n0 | squads.sh
+# Quality: forge-polish depth 9.0/10 (v2)
+
+tags:
+  - aiox
+  - squad
+  - synthetic-intelligence-factory
+  - harness-v3
+  - portable-global
+
+# v3 state — checkpoint dir per-project
+state:
+  enabled: true
+  storage: file
+  checkpoint_dir: "${PROJECT_CWD:-$PWD}/.squad-state/synthetic-intelligence-factory"
+  resume: true
+  retention: 10
+
+# v3 model_strategy — prevent silent downgrade
+model_strategy:
+  orchestrator: "claude-opus-4-7"
+  workers: "claude-sonnet-4-6"
+  reviewers: "claude-opus-4-7"
+  override: true
+
+# v3 harness — deterministic enforcement layer (was prompt-level)
+harness:
+  doom_loop:
+    enabled: true
+    max_identical_outputs: 3
+    similarity_threshold: 0.95
+    max_step_retries: 5
+    on_detect: abort
+    cooldown_seconds: 0
+  ralph_loop:
+    enabled: true
+    max_iterations: 5
+    persist_state: true
+  context_compaction:
+    enabled: true
+    strategy: key-fields
+    max_handoff_tokens: 4000
+    preserve_schema_fields: true
+  filesystem_collaboration:
+    enabled: true
+    artifact_dir: "${PROJECT_CWD:-$PWD}/.squad-state/artifacts"
+    cleanup: manual
+  traces:
+    enabled: true
+    level: standard
+    include_outputs: false
+  self_verify:
+    default_enabled: true
+  quality_framework:
+    enabled: true
+    threshold: 7.0
+    dimensions:
+      accuracy:  { weight: 1.0, threshold: 7.0, veto: true }
+      coherence: { weight: 0.9, threshold: 7.0, veto: false }
+
+# Portability — distinguishes global vs per-project assets
+portability:
+  global_home: "${SQUAD_HOME:-$HOME/.claude/skills/squads/squads/synthetic-intelligence-factory}"
+  project_data_path: "${PROJECT_CWD:-$PWD}"
+  resolved_by: "scripts/install-squads-to-global.sh"

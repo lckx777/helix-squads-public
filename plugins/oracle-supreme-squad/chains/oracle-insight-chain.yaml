@@ -1,0 +1,139 @@
+chain: "oracle-insight-chain"
+version: "1.0.0"
+parent_workflow: "oracle-insight-pipeline.yaml"
+parent_step: 1
+description: "Oracle insight pipeline: scan codebase, predict patterns, validate findings, implement improvements"
+owner: "oracle-scanner"
+
+no_skip: true
+max_retries: 2
+timeout_minutes: 45
+on_timeout: "escalate"
+
+micro_tasks:
+  1:
+    id: "deep-scan"
+    description: "Deep codebase analysis with LSP and pattern detection"
+    severity: "critical"
+    task_ref: null
+    executor:
+      type: "agent"
+      agent: "oracle-supreme-squad/oracle-scanner"
+    depends_on: []
+    receives_from: []
+    passes_to_next:
+      - key: "scan_report"
+        value: "output/perception-report.json"
+    gate:
+      checks:
+        - id: "scan-complete"
+          check: "Perception report generated"
+          severity: "BLOCKING"
+          rule: "file_exists(output/perception-report.json)"
+        - id: "findings-present"
+          check: "At least one finding with file:line evidence"
+          severity: "BLOCKING"
+          rule: "content_contains(output/perception-report.json, 'findings')"
+    output_contract:
+      required_files:
+        - "output/perception-report.json"
+      required_content:
+        - "findings"
+      min_size_bytes: 512
+
+  2:
+    id: "predict-patterns"
+    description: "Detect patterns and predict evolution of codebase"
+    severity: "optional"
+    task_ref: null
+    executor:
+      type: "agent"
+      agent: "oracle-supreme-squad/oracle-prophet"
+    depends_on:
+      - "deep-scan"
+    receives_from:
+      - key: "scan_report"
+        source: "deep-scan.scan_report"
+    passes_to_next:
+      - key: "strategy_output"
+        value: "output/strategy-output.json"
+    gate:
+      checks:
+        - id: "predictions-exist"
+          check: "Strategy output generated"
+          severity: "BLOCKING"
+          rule: "file_exists(output/strategy-output.json)"
+    output_contract:
+      required_files:
+        - "output/strategy-output.json"
+      required_content: []
+      min_size_bytes: null
+
+  3:
+    id: "validate-findings"
+    description: "Rigorous validation of all findings — oracle-critic NEVER approves mediocrity"
+    severity: "critical"
+    task_ref: null
+    executor:
+      type: "agent"
+      agent: "oracle-supreme-squad/oracle-critic"
+    depends_on:
+      - "deep-scan"
+      - "predict-patterns"
+    receives_from:
+      - key: "scan_report"
+        source: "deep-scan.scan_report"
+      - key: "strategy_output"
+        source: "predict-patterns.strategy_output"
+    passes_to_next:
+      - key: "validation_report"
+        value: "output/validation-report.json"
+    gate:
+      checks:
+        - id: "validation-complete"
+          check: "Validation report produced"
+          severity: "BLOCKING"
+          rule: "file_exists(output/validation-report.json)"
+        - id: "no-unverified-claims"
+          check: "All critical findings have evidence"
+          severity: "BLOCKING"
+          rule: "content_contains(output/validation-report.json, 'verified')"
+    output_contract:
+      required_files:
+        - "output/validation-report.json"
+      required_content:
+        - "verified"
+      min_size_bytes: 256
+
+  4:
+    id: "persist-knowledge"
+    description: "Update knowledge graph with validated findings"
+    severity: "optional"
+    task_ref: null
+    executor:
+      type: "agent"
+      agent: "oracle-supreme-squad/oracle-memory"
+    depends_on:
+      - "validate-findings"
+    receives_from:
+      - key: "validation_report"
+        source: "validate-findings.validation_report"
+    passes_to_next: []
+    gate:
+      checks:
+        - id: "graph-updated"
+          check: "Knowledge graph updated"
+          severity: "WARNING"
+          rule: "file_exists(output/knowledge-graph.json)"
+    output_contract:
+      required_files:
+        - "output/knowledge-graph.json"
+      required_content: []
+      min_size_bytes: null
+
+chain_gate:
+  condition: "ALL_CRITICAL_PASSED"
+  on_partial_fail:
+    "scan+validate without predictions": "WARNING -- core analysis complete, predictions skipped"
+    "scan+validate without knowledge persist": "WARNING -- analysis complete, knowledge graph not updated"
+  on_full_fail: "BLOCKED -- oracle-scanner failed to produce perception report"

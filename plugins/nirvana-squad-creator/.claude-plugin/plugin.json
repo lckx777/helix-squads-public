@@ -1,0 +1,20 @@
+{
+  "name": "nirvana-squad-creator",
+  "version": "1.0.0",
+  "description": "Gera squads AIOS otimizados a partir de linguagem natural — pipeline de 9 fases com análise, geração, otimização, validação, README multi-idioma, deploy e publicação no squads.sh",
+  "author": {
+    "name": "Luiz Gustavo Vieira Rodrigues <@gutomec>"
+  },
+  "license": "MIT",
+  "keywords": [
+    "squad-creator",
+    "meta-tool",
+    "aios",
+    "multi-agent",
+    "claude-code",
+    "pipeline",
+    "automation"
+  ],
+  "homepage": "https://github.com/lckx777/helix-squads-public/tree/main/plugins/nirvana-squad-creator",
+  "repository": "https://github.com/lckx777/helix-squads-public"
+}

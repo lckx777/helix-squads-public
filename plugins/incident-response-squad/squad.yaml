@@ -1,0 +1,112 @@
+name: incident-response-squad
+version: 1.0.0
+description: "Squad especialista em resposta a incidentes para DevOps/SRE — análise de logs, correlação de causa raiz, execução de runbooks, comunicação de status e geração de post-mortems blameless"
+author: gutomec
+license: MIT
+slashPrefix: irs
+
+aios:
+  minVersion: "2.1.0"
+  type: squad
+
+components:
+  agents:
+    - log-analyzer.md
+    - root-cause-correlator.md
+    - runbook-executor.md
+    - status-page-updater.md
+    - postmortem-writer.md
+  tasks:
+    - analyze-incident-logs.md
+    - correlate-root-cause.md
+    - execute-runbook.md
+    - update-status-page.md
+    - write-postmortem.md
+    - full-incident-response.md
+  workflows:
+    - full-incident-response-workflow.yaml
+    - rapid-triage-workflow.yaml
+  checklists: []
+  templates: []
+  tools: []
+  scripts: []
+
+config:
+  extends: extend
+  coding-standards: config/coding-standards.md
+  tech-stack: config/tech-stack.md
+  source-tree: config/source-tree.md
+
+dependencies:
+  node: []
+  python: []
+  squads: []
+
+mcpTools:
+  required: []
+  optional: []
+
+tags:
+  - incident-response
+  - devops
+  - sre
+  - monitoring
+  - on-call
+  - postmortem
+  - runbook
+
+# v3 state — checkpoint dir per-project
+state:
+  enabled: true
+  storage: file
+  checkpoint_dir: "${PROJECT_CWD:-$PWD}/.squad-state/incident-response-squad"
+  resume: true
+  retention: 10
+
+# v3 model_strategy — prevent silent downgrade
+model_strategy:
+  orchestrator: "claude-opus-4-7"
+  workers: "claude-sonnet-4-6"
+  reviewers: "claude-opus-4-7"
+  override: true
+
+# v3 harness — deterministic enforcement layer (was prompt-level)
+harness:
+  doom_loop:
+    enabled: true
+    max_identical_outputs: 3
+    similarity_threshold: 0.95
+    max_step_retries: 5
+    on_detect: abort
+    cooldown_seconds: 0
+  ralph_loop:
+    enabled: true
+    max_iterations: 5
+    persist_state: true
+  context_compaction:
+    enabled: true
+    strategy: key-fields
+    max_handoff_tokens: 4000
+    preserve_schema_fields: true
+  filesystem_collaboration:
+    enabled: true
+    artifact_dir: "${PROJECT_CWD:-$PWD}/.squad-state/artifacts"
+    cleanup: manual
+  traces:
+    enabled: true
+    level: standard
+    include_outputs: false
+  self_verify:
+    default_enabled: true
+  quality_framework:
+    enabled: true
+    threshold: 7.0
+    dimensions:
+      accuracy:  { weight: 1.0, threshold: 7.0, veto: true }
+      coherence: { weight: 0.9, threshold: 7.0, veto: false }
+
+# Portability — distinguishes global vs per-project assets
+portability:
+  global_home: "${SQUAD_HOME:-$HOME/.claude/skills/squads/squads/incident-response-squad}"
+  project_data_path: "${PROJECT_CWD:-$PWD}"
+  resolved_by: "scripts/install-squads-to-global.sh"

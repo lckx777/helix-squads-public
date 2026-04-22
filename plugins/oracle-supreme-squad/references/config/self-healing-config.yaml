@@ -1,0 +1,16 @@
+# Self-Healing Configuration
+self_healing:
+  enabled: true
+  detection:
+    - type: test_failure
+      action: analyze_and_fix
+      max_attempts: 3
+    - type: type_error
+      action: lsp_guided_fix
+      max_attempts: 2
+    - type: runtime_crash
+      action: stacktrace_analysis
+      max_attempts: 2
+  rollback:
+    enabled: true
+    strategy: git_checkpoint

@@ -1,0 +1,184 @@
+# --- Identity ---
+chain: context-enrichment
+version: "1.0.0"
+parent_workflow: "context-enrichment-pipeline.yaml"
+parent_step: 3
+description: "Decomposes the parallel research step into 4 micro-tasks — 3 parallel researcher dispatches and a barrier validator — with explicit handoffs and gate checks per Constitution Art. VII"
+owner: "nirva"
+
+# --- Configuration ---
+no_skip: true
+max_retries: 1
+timeout_minutes: 15
+on_timeout: escalate
+
+# --- Micro-Tasks ---
+micro_tasks:
+  1:
+    id: run-sage-foundational
+    description: "Sage executes 6-round foundational research on the topic"
+    severity: critical
+    task_ref: "tasks/execute-deep-research.md"
+    executor:
+      agent: sage
+      parallel_group: "research-fanout"
+    inputs:
+      - campo: sageBrief
+        origen: "step 2 dispatchResearchTeam() — sage-brief payload"
+    outputs:
+      - campo: sageFindings
+        destino: ".nce/findings/sage.md"
+    gate:
+      post:
+        - check: "file_exists"
+          target: ".nce/findings/sage.md"
+          description: "Findings file must exist"
+        - check: "yaml_frontmatter_field"
+          target: ".nce/findings/sage.md"
+          field: "status"
+          expected: "complete"
+          description: "Sage must have completed all 6 rounds"
+        - check: "yaml_frontmatter_numeric"
+          target: ".nce/findings/sage.md"
+          field: "searches"
+          min: 6
+          description: "Minimum 6 searches across 6 rounds"
+        - check: "yaml_frontmatter_numeric"
+          target: ".nce/findings/sage.md"
+          field: "extractions"
+          min: 6
+          description: "Minimum 6 content extractions"
+
+  2:
+    id: run-scout-ecosystem
+    description: "Scout maps the ecosystem across skills.sh, GitHub, and awesome-lists"
+    severity: critical
+    task_ref: "tasks/explore-skills-ecosystem.md"
+    executor:
+      agent: scout
+      parallel_group: "research-fanout"
+    inputs:
+      - campo: scoutBrief
+        origen: "step 2 dispatchResearchTeam() — scout-brief payload"
+    outputs:
+      - campo: scoutFindings
+        destino: ".nce/findings/scout.md"
+    gate:
+      post:
+        - check: "file_exists"
+          target: ".nce/findings/scout.md"
+        - check: "yaml_frontmatter_field"
+          target: ".nce/findings/scout.md"
+          field: "status"
+          expected: "complete"
+        - check: "yaml_frontmatter_numeric"
+          target: ".nce/findings/scout.md"
+          field: "searches"
+          min: 3
+          description: "Minimum 3 searches across 3 axes"
+        - check: "yaml_frontmatter_numeric"
+          target: ".nce/findings/scout.md"
+          field: "extractions"
+          min: 3
+        - check: "yaml_frontmatter_numeric"
+          target: ".nce/findings/scout.md"
+          field: "tools_shortlisted"
+          min: 5
+
+  3:
+    id: run-scholar-academic
+    description: "Scholar collects peer-reviewed papers and foundational references with tier enforcement"
+    severity: critical
+    task_ref: "tasks/collect-academic-sources.md"
+    executor:
+      agent: scholar
+      parallel_group: "research-fanout"
+    inputs:
+      - campo: scholarBrief
+        origen: "step 2 dispatchResearchTeam() — scholar-brief payload"
+    outputs:
+      - campo: scholarFindings
+        destino: ".nce/findings/scholar.md"
+    gate:
+      post:
+        - check: "file_exists"
+          target: ".nce/findings/scholar.md"
+        - check: "yaml_frontmatter_field"
+          target: ".nce/findings/scholar.md"
+          field: "status"
+          expected: "complete"
+        - check: "yaml_frontmatter_numeric"
+          target: ".nce/findings/scholar.md"
+          field: "searches"
+          min: 2
+        - check: "yaml_frontmatter_numeric"
+          target: ".nce/findings/scholar.md"
+          field: "papers_cited"
+          min: 2
+          description: "Minimum 2 papers with DOI or stable URL"
+
+  4:
+    id: enforce-quorum-barrier
+    description: "Aggregate barrier — sums researcher metrics and renders pass/fail verdict"
+    severity: critical
+    task_ref: "tasks/validate-coverage-quorum.md"
+    executor:
+      agent: nirva
+      depends_on:
+        - run-sage-foundational
+        - run-scout-ecosystem
+        - run-scholar-academic
+    inputs:
+      - campo: sageFindings
+        origen: "micro_task 1 output"
+      - campo: scoutFindings
+        origen: "micro_task 2 output"
+      - campo: scholarFindings
+        origen: "micro_task 3 output"
+    outputs:
+      - campo: quorumVerdict
+        destino: "Nirva controller (in-memory) — gates step 5 (synthesis)"
+      - campo: quorumLog
+        destino: ".nce/quorum-log.jsonl"
+    gate:
+      post:
+        - check: "aggregate_numeric"
+          target: ".nce/findings/*.md"
+          field: "searches"
+          sum_min: 24
+          description: "Total searches across all researchers ≥ 24"
+        - check: "aggregate_numeric"
+          target: ".nce/findings/*.md"
+          field: "extractions"
+          sum_min: 11
+          description: "Total extractions across all researchers ≥ 11"
+        - check: "all_status_complete"
+          targets:
+            - ".nce/findings/sage.md"
+            - ".nce/findings/scout.md"
+            - ".nce/findings/scholar.md"
+          description: "All 3 researchers must have status=complete"
+
+# --- Chain Gate ---
+chain_gate:
+  condition: "all_critical_passed"
+  description: "Chain passes only if all 4 critical micro-tasks pass their post-gates. Failure at any gate triggers retry (max 1) then abort."
+  on_pass:
+    action: "proceed_to_step"
+    target: 5
+    description: "Handoff to synthesizeContextReport() (Lotus)"
+  on_fail:
+    action: "retry_then_abort"
+    max_retries: 1
+    description: "Re-dispatch failing researcher once; if still failing, abort pipeline and write .nce/abort-report.md"
+
+# --- Diagnostics ---
+diagnostics:
+  log_path: ".nce/chain-log.jsonl"
+  structured: true
+  fields:
+    - run_id
+    - micro_task_id
+    - status
+    - duration_ms
+    - gate_results

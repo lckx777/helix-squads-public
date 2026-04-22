@@ -1,0 +1,120 @@
+name: nirvana-squad-creator
+version: 1.0.0
+description: "Gera squads AIOS otimizados a partir de linguagem natural — pipeline de 9 fases com análise, geração, otimização, validação, README multi-idioma, deploy e publicação no squads.sh"
+author: "Luiz Gustavo Vieira Rodrigues <@gutomec>"
+license: MIT
+slashPrefix: nsc
+
+aios:
+  minVersion: "2.1.0"
+  type: squad
+
+components:
+  agents:
+    - squad-analyzer.md
+    - squad-agent-creator.md
+    - squad-task-creator.md
+    - squad-workflow-creator.md
+    - squad-optimizer.md
+    - squad-validator.md
+    - squad-readme-creator.md
+    - squad-publisher.md
+    - squad-orchestrator.md
+  tasks:
+    - analyze-requirements.md
+    - create-agents.md
+    - create-tasks.md
+    - create-workflows.md
+    - optimize-squad.md
+    - validate-squad.md
+    - create-multilingual-readme.md
+    - deploy-squad.md
+    - publish-squad.md
+    - manage-state.md
+  workflows:
+    - squad-generation-pipeline.yaml
+    - squad-publish-flow.yaml
+  checklists: []
+  templates:
+    - agent.template.md
+    - task.template.md
+    - workflow.template.md
+    - squad-yaml.template.md
+  tools: []
+  scripts:
+    - squad-tools.cjs
+
+config:
+  extends: none
+  coding-standards: config/coding-standards.md
+  tech-stack: config/tech-stack.md
+  source-tree: config/source-tree.md
+
+dependencies:
+  node: []
+  squads: []
+
+tags:
+  - squad-creator
+  - meta-tool
+  - aios
+  - multi-agent
+  - claude-code
+  - pipeline
+  - automation
+
+# v3 state — checkpoint dir per-project
+state:
+  enabled: true
+  storage: file
+  checkpoint_dir: "${PROJECT_CWD:-$PWD}/.squad-state/nirvana-squad-creator"
+  resume: true
+  retention: 10
+
+# v3 model_strategy — prevent silent downgrade
+model_strategy:
+  orchestrator: "claude-opus-4-7"
+  workers: "claude-sonnet-4-6"
+  reviewers: "claude-opus-4-7"
+  override: true
+
+# v3 harness — deterministic enforcement layer (was prompt-level)
+harness:
+  doom_loop:
+    enabled: true
+    max_identical_outputs: 3
+    similarity_threshold: 0.95
+    max_step_retries: 5
+    on_detect: abort
+    cooldown_seconds: 0
+  ralph_loop:
+    enabled: true
+    max_iterations: 5
+    persist_state: true
+  context_compaction:
+    enabled: true
+    strategy: key-fields
+    max_handoff_tokens: 4000
+    preserve_schema_fields: true
+  filesystem_collaboration:
+    enabled: true
+    artifact_dir: "${PROJECT_CWD:-$PWD}/.squad-state/artifacts"
+    cleanup: manual
+  traces:
+    enabled: true
+    level: standard
+    include_outputs: false
+  self_verify:
+    default_enabled: true
+  quality_framework:
+    enabled: true
+    threshold: 7.0
+    dimensions:
+      accuracy:  { weight: 1.0, threshold: 7.0, veto: true }
+      coherence: { weight: 0.9, threshold: 7.0, veto: false }
+
+# Portability — distinguishes global vs per-project assets
+portability:
+  global_home: "${SQUAD_HOME:-$HOME/.claude/skills/squads/squads/nirvana-squad-creator}"
+  project_data_path: "${PROJECT_CWD:-$PWD}"
+  resolved_by: "scripts/install-squads-to-global.sh"

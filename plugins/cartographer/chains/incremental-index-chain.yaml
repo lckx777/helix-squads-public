@@ -1,0 +1,78 @@
+# Incremental Index Chain
+# Triggered by: PostToolUse hook (when source files are modified) or explicit *cart-reindex --incremental
+# Constitution Art. VII: multi-agent workflow requires chain definition
+
+name: incremental-index-chain
+version: 1.0.0
+description: "Hash-gated incremental excavation — only re-parses changed files, then updates graph"
+trigger:
+  type: [on_demand, post_tool_use]
+  hook: ".claude/hooks/cartographer-ids-check.cjs"  # future — see @sm stories
+  manual_command: "*cart-reindex --incremental"
+auto_handoff: true
+
+steps:
+  - id: detect-changes
+    agent: cart-surveyor
+    task: null  # surveyor computes changed file set from last-hashes.json
+    description: "Identify changed files since last excavation run"
+    condition: "files_changed > 0"
+    auto_handoff: true
+    on_skip: "No changes detected — graph is current"
+
+  - id: index-ts
+    agent: cart-ts-digger
+    task: index-typescript
+    description: "Incremental TS excavation — changed files only"
+    args:
+      run_mode: incremental
+    condition: "ts_files_changed > 0"
+    auto_handoff: true
+    on_skip: "No TS changes — skip"
+
+  - id: index-py
+    agent: cart-py-digger
+    task: index-python
+    description: "Incremental Python excavation — changed files only"
+    args:
+      run_mode: incremental
+    condition: "py_files_changed > 0"
+    parallel_with: [index-ts]  # can run in parallel
+    auto_handoff: true
+    on_skip: "No Python changes — skip"
+
+  - id: index-yaml
+    agent: cart-yaml-digger
+    task: index-yaml
+    description: "Incremental YAML excavation — changed config files only"
+    args:
+      run_mode: incremental
+    condition: "yaml_files_changed > 0"
+    parallel_with: [index-ts, index-py]  # can run in parallel
+    auto_handoff: true
+    on_skip: "No YAML changes — skip"
+
+  - id: index-sql
+    agent: cart-sql-digger
+    task: index-sql
+    description: "Incremental SQL excavation — new migrations only"
+    args:
+      run_mode: incremental
+    condition: "sql_files_changed > 0"
+    parallel_with: [index-ts, index-py, index-yaml]  # can run in parallel
+    auto_handoff: true
+    on_skip: "No SQL changes — skip"
+
+  - id: build-graph
+    agent: cart-keeper
+    task: build-graph
+    description: "Update graph with new digger outputs"
+    depends_on: [index-ts, index-py, index-yaml, index-sql]
+    gate: excavation  # ALL diggers that ran must be PASSED
+    auto_handoff: false  # human should see graph update result
+
+gates:
+  - step: build-graph
+    checklist: checklists/graph-integrity-gate.md
+    enforcer: cart-keeper
+    required: true

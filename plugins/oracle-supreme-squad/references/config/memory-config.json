@@ -1,0 +1,40 @@
+{
+  "memory": {
+    "hierarchical": true,
+    "levels": {
+      "global": {
+        "enabled": true,
+        "path": ".oracle-state/global",
+        "promotionThreshold": 0.8,
+        "maxSize": "1GB"
+      },
+      "project": {
+        "enabled": true,
+        "path": ".oracle-state/projects",
+        "maxSize": "500MB"
+      },
+      "session": {
+        "enabled": true,
+        "path": ".oracle-state/sessions",
+        "ttl": "7d",
+        "maxSize": "100MB"
+      }
+    },
+    "compaction": {
+      "enabled": true,
+      "strategy": "wave-compress",
+      "threshold": 100000,
+      "preserveCritical": true
+    },
+    "embeddings": {
+      "model": "sentence-transformers/all-MiniLM-L6-v2",
+      "dimensions": 384,
+      "batchSize": 32
+    },
+    "persistence": {
+      "flushInterval": 60000,
+      "checkpointInterval": 3600000,
+      "transcriptFormat": "jsonl"
+    }
+  }
+}

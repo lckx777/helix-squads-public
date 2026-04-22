@@ -1,0 +1,20 @@
+{
+  "name": "incident-response-squad",
+  "version": "1.0.0",
+  "description": "Squad especialista em resposta a incidentes para DevOps/SRE — análise de logs, correlação de causa raiz, execução de runbooks, comunicação de status e geração de post-mortems blameless",
+  "author": {
+    "name": "gutomec"
+  },
+  "license": "MIT",
+  "keywords": [
+    "incident-response",
+    "devops",
+    "sre",
+    "monitoring",
+    "on-call",
+    "postmortem",
+    "runbook"
+  ],
+  "homepage": "https://github.com/lckx777/helix-squads-public/tree/main/plugins/incident-response-squad",
+  "repository": "https://github.com/lckx777/helix-squads-public"
+}

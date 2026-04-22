@@ -1,0 +1,20 @@
+{
+  "name": "claude-code-mastery",
+  "version": "1.0.0",
+  "description": "Claude Code Full Spectrum Expertise — hooks, skills, subagents, MCP, plugins, agent teams, customização e integração",
+  "author": {
+    "name": "lucac"
+  },
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "hooks",
+    "skills",
+    "subagents",
+    "mcp",
+    "plugins",
+    "agent-teams"
+  ],
+  "homepage": "https://github.com/lckx777/helix-squads-public/tree/main/plugins/claude-code-mastery",
+  "repository": "https://github.com/lckx777/helix-squads-public"
+}

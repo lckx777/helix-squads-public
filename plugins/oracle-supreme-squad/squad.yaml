@@ -1,0 +1,396 @@
+name: oracle-supreme-squad
+version: 4.0.0
+description: "\U0001F52E ORACLE SUPREME — O squad transcendente que extrai o DNA do Claude Code\n\nNível: ALÉM DE NIRVANA\
+  \ — Transcende todos os limites conhecidos\n\nInspiração: Código vazado do Claude Code (Anthropic, 2026-03-31)\n- src/QueryEngine.ts\
+  \ (46K linhas) → Meta-reasoning loop\n- src/Tool.ts (29K linhas) → Dynamic tool orchestration\n- src/services/ → Service\
+  \ architecture patterns\n- src/bridge/ → IDE integration mastery\n- src/coordinator/ → Multi-agent swarms\n- Thinking mode\
+  \ → Extended reasoning with budget\n- Cost tracking → Auto-optimization\n\nCapacidades Oraculares:\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\
+  \U0001F50D PERCEPÇÃO AUMENTADA\n  • oracle-scanner: Deep context analysis + knowledge graph\n  • oracle-prophet: Pattern\
+  \ detection + future predictions\n  • oracle-diviner: Opportunity detection + market validation\n\n\U0001F9E0 INTELIGÊNCIA\
+  \ ESTRATÉGICA  \n  • oracle-strategist: Multi-criteria strategic planning\n  • oracle-architect: System design + pattern\
+  \ selection\n  • oracle-critic: Rigorous self-reflection + validation ⭐ CRUCIAL\n  • oracle-optimizer: Performance + cost\
+  \ optimization\n\n⚡ EXECUÇÃO PRECISA\n  • oracle-forge: LSP-guided code generation + TDD ⭐ GAME CHANGER\n  • oracle-guardian:\
+  \ Security audit + auto-remediation\n  • oracle-healer: Bug detection + self-healing\n  • oracle-scribe: Documentation +\
+  \ knowledge base\n\n\U0001F31F EVOLUÇÃO CONTÍNUA\n  • oracle-memory: Infinite memory + transfer learning ⭐⭐ META\n\nFeatures\
+  \ Transcendentes:\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n✨ Meta-Reasoning: Raciocina sobre seu próprio\
+  \ raciocínio\n\U0001F504 Self-Healing: Auto-correção de erros em tempo real\n\U0001F9EC Knowledge Graph: Grafo persistente\
+  \ de conhecimento\n\U0001F393 Transfer Learning: Aplica aprendizado entre projetos\n\U0001F39B️ Auto-Tuning: Otimiza-se\
+  \ baseado em performance\n\U0001F52E Predictive Analysis: Prevê evolução de codebases\n\U0001F6E1️ Validation Gates: oracle-critic\
+  \ NUNCA aprova mediocridade\n♾️ Infinite Context: oracle-memory nunca esquece\n"
+author: Extracted from Claude Code + Enhanced by Oracle Protocols
+license: MIT
+slashPrefix: oracle
+aios:
+  minVersion: 2.1.0
+  type: squad
+orchestrator: oracle-scanner
+tiers:
+  opus:
+  - oracle-scanner
+  - oracle-critic
+  sonnet:
+  - oracle-prophet
+  - oracle-forge
+  - oracle-memory
+components:
+  agents:
+  - oracle-scanner.md
+  - oracle-prophet.md
+  - oracle-critic.md
+  - oracle-forge.md
+  - oracle-memory.md
+  tasks: []
+  workflows:
+  - oracle-insight-pipeline.yaml
+  schemas:
+  - perception-report.json
+  - strategy-output.json
+  - architecture-design.json
+  - validation-report.json
+  - implementation-result.json
+  - knowledge-graph.json
+  - learning-summary.json
+  checklists:
+  - oracle-quality-gate.md
+  - meta-reasoning-checklist.md
+  - self-healing-verification.md
+  - knowledge-graph-integrity.md
+  - transfer-learning-validation.md
+  templates:
+  - executive-summary.md
+  - knowledge-graph-template.json
+  - opportunity-card.md
+  - architecture-adr.md
+  - security-report.md
+  - learning-artifact.md
+  tools: []
+  scripts:
+  - validate_knowledge_graph.py
+  - transfer_learning_scorer.py
+  - meta_reasoning_analyzer.py
+  - auto_tuning_engine.py
+  - self_healing_monitor.py
+  config:
+  - CONSTITUTION.md
+  - EPISTEMIC-PROTOCOL.md
+  - CIRCUIT-BREAKER.md
+governance:
+  constitution: config/CONSTITUTION.md
+  epistemic_protocol: config/EPISTEMIC-PROTOCOL.md
+  circuit_breaker: config/CIRCUIT-BREAKER.md
+routing:
+  analysis:
+  - oracle-scanner
+  prediction:
+  - oracle-prophet
+  validation:
+  - oracle-critic
+  implementation:
+  - oracle-forge
+  knowledge:
+  - oracle-memory
+gates:
+- id: evidence-gate
+  check: All findings cite file:line evidence
+  severity: BLOCKING
+- id: critic-gate
+  check: oracle-critic has approved output
+  severity: BLOCKING
+- id: knowledge-integrity-gate
+  check: Knowledge graph consistent after update
+  severity: WARNING
+execution_model:
+  default: hybrid
+  modes:
+    orchestrated: Full delegation via orchestrator to specialist agents
+    sequential: Single-context sequential execution
+    hybrid: Coordination inline, deep analysis via inline persona swap
+config:
+  extends: transcendent
+  oracle-protocols: config/oracle-protocols.md
+  claude-code-dna: config/claude-code-dna.md
+  meta-reasoning: config/meta-reasoning-framework.md
+  self-healing: config/self-healing-config.yaml
+output:
+  base_dir: ./squads-output
+  structure: '{squad-name}/{datetime}-{project-name}'
+state:
+  enabled: true
+  storage: file
+  checkpoint_dir: .oracle-state
+  resume: true
+  retention: infinity
+  memory_persistence: true
+  knowledge_graph_path: .oracle-state/knowledge-graph.json
+  learning_history: .oracle-state/learning-history/
+  performance_tracking: .oracle-state/performance/
+model_strategy:
+  perception: claude-opus-4
+  intelligence: claude-sonnet-4
+  execution: claude-sonnet-4
+  memory: claude-opus-4
+  critic: claude-opus-4
+  override: false
+harness:
+  doom_loop:
+    enabled: true
+    max_identical_outputs: 2
+    similarity_threshold: 0.9
+    on_detect: oracle-critic-escalation
+    meta_analysis: true
+  ralph_loop:
+    enabled: true
+    max_iterations: 7
+    persist_state: true
+    learn_from_failures: true
+    oracle_memory_integration: true
+  context_compaction:
+    enabled: true
+    strategy: oracle-intelligent
+    strategies:
+    - key-fields
+    - semantic-compression
+    - knowledge-graph-links
+    max_handoff_tokens: 8000
+    preserve_schema_fields: true
+    preserve_knowledge_graph: true
+  filesystem_collaboration:
+    enabled: true
+    artifact_dir: squads-output/oracle-supreme-squad
+    cleanup: intelligent
+    knowledge_extraction: true
+    versioning: true
+  traces:
+    enabled: true
+    level: oracle-deep
+    include_outputs: true
+    include_reasoning: true
+    include_critic_feedback: true
+  self_verify:
+    default_enabled: true
+    oracle_mode: true
+    layers:
+    - logical_consistency
+    - evidence_sufficiency
+    - bias_detection
+    - assumption_validation
+    - oracle_critic_approval
+  diminishing_returns:
+    enabled: true
+    min_new_info_ratio: 0.15
+    consecutive_waves: 2
+    coverage_threshold: 90
+    on_detect: oracle-strategist-reassess
+  artifact_lifecycle:
+    enabled: true
+    states:
+    - draft
+    - pending_oracle_review
+    - oracle_reviewed
+    - critic_approved
+    - validated
+    - knowledge_extracted
+    - archived
+    require_validation: true
+    require_critic_approval: true
+    knowledge_extraction: automatic
+  quality_framework:
+    enabled: true
+    threshold: 9.0
+    oracle_dimensions:
+      accuracy:
+        weight: 1.0
+        threshold: 9.5
+        veto: true
+        oracle_critic_required: true
+      coherence:
+        weight: 1.0
+        threshold: 9.0
+        veto: true
+      strategic_alignment:
+        weight: 0.95
+        threshold: 8.5
+        veto: false
+      operational_excellence:
+        weight: 0.9
+        threshold: 8.0
+        veto: false
+      innovation_capacity:
+        weight: 0.85
+        threshold: 7.5
+        veto: false
+      risk_management:
+        weight: 0.9
+        threshold: 8.0
+        veto: false
+      resource_optimization:
+        weight: 0.85
+        threshold: 7.5
+        veto: false
+      stakeholder_value:
+        weight: 0.8
+        threshold: 7.0
+        veto: false
+      adaptability:
+        weight: 0.85
+        threshold: 7.5
+        veto: false
+      sustainability:
+        weight: 0.75
+        threshold: 6.5
+        veto: false
+      meta_reasoning_quality:
+        weight: 1.0
+        threshold: 9.0
+        veto: true
+        description: Qualidade do raciocínio sobre raciocínio
+      knowledge_graph_integrity:
+        weight: 0.9
+        threshold: 8.5
+        veto: false
+        description: Integridade do knowledge graph
+  meta_reasoning:
+    enabled: true
+    thinking_budget_adaptive: true
+    min_thinking_tokens: 1000
+    max_thinking_tokens: 10000
+    auto_tune_based_on_complexity: true
+    reflection_prompts:
+    - Are my assumptions valid?
+    - Did I consider alternatives?
+    - What biases might affect this?
+    - How can I validate this conclusion?
+    - What did I miss?
+    critic_validation_required: true
+  self_healing:
+    enabled: true
+    max_auto_fix_attempts: 3
+    root_cause_analysis: true
+    regression_test_generation: true
+    failure_pattern_learning: true
+    oracle_memory_integration: true
+    escalation_to_critic: true
+  knowledge_graph:
+    enabled: true
+    persistence: true
+    persistence_path: .oracle-state/knowledge-graph.json
+    auto_update: true
+    semantic_search: true
+    embedding_model: text-embedding-3-large
+    vector_db: faiss
+    node_types:
+    - concept
+    - file
+    - pattern
+    - solution
+    - learning
+    - decision
+    edge_types:
+    - implements
+    - uses
+    - similar_to
+    - solves
+    - depends_on
+    - evolved_from
+    integrity_checks: true
+    versioning: true
+  transfer_learning:
+    enabled: true
+    cross_project_enabled: true
+    similarity_threshold: 0.75
+    auto_inject_context: true
+    learning_persistence: true
+    pattern_extraction: true
+    solution_reuse: true
+  auto_tuning:
+    enabled: true
+    parameters:
+    - thinking_budget
+    - tool_selection_threshold
+    - parallel_execution_limit
+    - context_window_size
+    - retry_max_attempts
+    - quality_threshold
+    performance_tracking: true
+    benchmark_enabled: true
+    tuning_frequency: after_each_workflow
+    validation_required: true
+dependencies:
+  node:
+  - ajv@^8.0.0
+  - ajv-formats@^3.0.0
+  - faiss-node@^0.5.0
+  - '@anthropic-ai/sdk@^0.39.0'
+  python:
+  - faiss-cpu>=1.7.0
+  - sentence-transformers>=2.0.0
+  - networkx>=3.0
+  squads: []
+tags:
+- v4
+- harness
+- oracle
+- transcendent
+- beyond-nirvana
+- meta-reasoning
+- self-healing
+- knowledge-graph
+- transfer-learning
+- auto-tuning
+- claude-code-dna
+- infinite-memory
+- predictive-analysis
+- critic-gated
+- lsp-powered
+- quantum-leap
+triggers:
+  enabled: true
+  display: inline
+  events:
+    squad: true
+    agent: true
+    task: true
+    validation: true
+    checkpoint: true
+    human_gate: true
+    doom_loop: true
+    ralph_loop: true
+    artifact: true
+    trace: true
+  logPath: .aios/squad-triggers/
+  flow:
+    enabled: true
+    live: true
+    preview: true
+    summary: true
+agents_metadata:
+  Oracle Critic - The Absolute Truth Guardian:
+    icon: ⚖️
+    archetype: Guardian
+  Oracle Forge - The LSP-Powered Master Craftsman:
+    icon: ⚒️
+    archetype: Builder
+  Oracle Memory - The Infinite Collective Mind:
+    icon: 🧠
+    archetype: Balancer
+  Oracle Prophet - Pattern Recognition & Future Prediction:
+    icon: 🔮
+    archetype: Flow_Master
+  Oracle Scanner - Deep Context Analyzer:
+    icon: 🔍
+    archetype: Flow_Master
+keywords:
+- meta-reasoning
+- code-analysis
+- lsp
+- tdd
+- knowledge-graph
+- architecture
+- security-audit
+- self-healing
+
+# Portability — distinguishes global vs per-project assets
+portability:
+  global_home: "${SQUAD_HOME:-$HOME/.claude/skills/squads/squads/oracle-supreme-squad}"
+  project_data_path: "${PROJECT_CWD:-$PWD}"
+  resolved_by: "scripts/install-squads-to-global.sh"

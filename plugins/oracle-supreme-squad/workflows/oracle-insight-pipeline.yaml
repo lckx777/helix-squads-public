@@ -1,0 +1,83 @@
+name: oracle_insight_pipeline
+version: 4.0.0
+description: Oracle Insight Pipeline - Complete end-to-end codebase analysis
+trigger:
+  commands:
+    - "*oracle-insight-pipeline"
+  threshold: 1
+timeout: 10-30 minutes
+chain: chains/oracle-insight-chain.yaml
+steps:
+  - id: oracle_scanner
+    agent: oracle-scanner
+    task: Execute oracle-scanner responsibilities
+    description: Step 1 — oracle-scanner execution
+    inputs: []
+    outputs: []
+    on_failure:
+      retry:
+        max_attempts: 3
+        delay: exponential(base=2s, max=30s)
+      fallback: abort
+  - id: oracle_prophet
+    agent: oracle-prophet
+    task: Execute oracle-prophet responsibilities
+    description: Step 2 — oracle-prophet execution
+    inputs: []
+    outputs: []
+    on_failure:
+      retry:
+        max_attempts: 3
+        delay: exponential(base=2s, max=30s)
+      fallback: abort
+    depends_on:
+      - oracle_scanner
+  - id: oracle_critic
+    agent: oracle-critic
+    task: Execute oracle-critic responsibilities
+    description: Step 3 — oracle-critic execution
+    inputs: []
+    outputs: []
+    on_failure:
+      retry:
+        max_attempts: 3
+        delay: exponential(base=2s, max=30s)
+      fallback: abort
+    depends_on:
+      - oracle_prophet
+  - id: oracle_forge
+    agent: oracle-forge
+    task: Execute oracle-forge responsibilities
+    description: Step 4 — oracle-forge execution
+    inputs: []
+    outputs: []
+    on_failure:
+      retry:
+        max_attempts: 3
+        delay: exponential(base=2s, max=30s)
+      fallback: abort
+    depends_on:
+      - oracle_critic
+  - id: oracle_memory
+    agent: oracle-memory
+    task: Execute oracle-memory responsibilities
+    description: Step 5 — oracle-memory execution
+    inputs: []
+    outputs: []
+    on_failure:
+      retry:
+        max_attempts: 3
+        delay: exponential(base=2s, max=30s)
+      fallback: abort
+    depends_on:
+      - oracle_forge
+workflow_name: oracle_insight_pipeline
+agent_sequence:
+  - oracle-scanner
+  - oracle-prophet
+  - oracle-critic
+  - oracle-forge
+  - oracle-memory
+success_indicators:
+  - All steps completed successfully
+  - No blocking errors in execution

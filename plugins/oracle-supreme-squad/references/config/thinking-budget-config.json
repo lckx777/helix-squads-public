@@ -1,0 +1,38 @@
+{
+  "thinking": {
+    "adaptive": true,
+    "modes": {
+      "disabled": {
+        "budget": 0,
+        "use_when": "Simple tasks, quick validations"
+      },
+      "enabled": {
+        "budget": 3000,
+        "use_when": "Standard complexity tasks"
+      },
+      "adaptive": {
+        "min_budget": 1000,
+        "max_budget": 5000,
+        "use_when": "Complex tasks requiring deep reasoning",
+        "auto_adjust": true,
+        "complexity_thresholds": {
+          "low": { "score_max": 3, "budget": 1000 },
+          "medium": { "score_max": 7, "budget": 3000 },
+          "high": { "score_min": 7, "budget": 5000 }
+        }
+      }
+    },
+    "meta_reasoning": {
+      "enabled": true,
+      "max_retries": 2,
+      "retry_budget_multiplier": 2,
+      "track_metrics": true
+    },
+    "cost_awareness": {
+      "enabled": true,
+      "max_cost_per_turn": 0.50,
+      "warn_threshold": 0.30,
+      "auto_downgrade": true
+    }
+  }
+}

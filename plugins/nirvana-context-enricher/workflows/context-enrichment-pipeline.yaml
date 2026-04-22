@@ -1,0 +1,194 @@
+# --- Identity ---
+workflow_name: context_enrichment_pipeline
+description: "Parallel multi-agent context enrichment — deep research, skills exploration, and academic collection synthesized into a 16-section architectural briefing"
+
+# --- Pattern ---
+pattern: fan_out_with_join_barrier
+pattern_justification: "Three researchers (sage, scout, scholar) are 100% independent during execution with no shared state — maximum parallel throughput. A join barrier enforced by validateCoverageQuorum() synchronizes before synthesis. Sequential pipeline would triple runtime; pure fan-out without barrier would risk partial/incoherent synthesis. This pattern is literally what the dependency graph in analysis.md describes."
+
+# --- Agent Sequence ---
+agent_sequence:
+  - nirva                            # orchestrator — phases 1, 2, 6, 8, 9
+  - sage                             # parallel researcher (foundational axis)
+  - scout                            # parallel researcher (ecosystem axis)
+  - scholar                          # parallel researcher (academic axis)
+  - lotus                            # synthesizer — phase 5
+
+# --- Trigger ---
+key_commands:
+  - "*enrich-context"
+  - "*nce"
+trigger_threshold: 1
+typical_duration: "7-15 minutes"
+
+# --- Steps ---
+steps:
+  - step: 1
+    name: "Parse Request"
+    agent: nirva
+    task: parseEnrichmentRequest
+    inputs:
+      - "user topic + optional scope"
+    outputs:
+      - ".nce/request.md"
+      - ".nce/lock"
+
+  - step: 2
+    name: "Dispatch Research Team"
+    agent: nirva
+    task: dispatchResearchTeam
+    inputs:
+      - ".nce/request.md"
+    outputs:
+      - "3 parallel subagent handles (sage, scout, scholar)"
+      - ".nce/dispatch-log.jsonl"
+
+  - step: 3
+    name: "Parallel Research (fan-out)"
+    chain: "chains/context-enrichment.yaml"
+    parallel: true
+    agents:
+      - agent: sage
+        task: executeDeepResearch
+        output: ".nce/findings/sage.md"
+      - agent: scout
+        task: exploreSkillsEcosystem
+        output: ".nce/findings/scout.md"
+      - agent: scholar
+        task: collectAcademicSources
+        output: ".nce/findings/scholar.md"
+    note: "This step is decomposed into micro-tasks by the chain (Constitution Art. VII)."
+
+  - step: 4
+    name: "Validate Coverage Quorum (join barrier)"
+    agent: nirva
+    task: validateCoverageQuorum
+    inputs:
+      - ".nce/findings/sage.md"
+      - ".nce/findings/scout.md"
+      - ".nce/findings/scholar.md"
+    outputs:
+      - "quorumVerdict (in-memory)"
+      - ".nce/quorum-log.jsonl"
+    on_fail:
+      action: retry_researchers
+      max_retries: 1
+      description: "Re-dispatch failing researcher(s); abort pipeline if retry fails"
+
+  - step: 5
+    name: "Synthesize Context Report"
+    agent: lotus
+    task: synthesizeContextReport
+    inputs:
+      - ".nce/findings/sage.md"
+      - ".nce/findings/scout.md"
+      - ".nce/findings/scholar.md"
+    outputs:
+      - ".nce/report.md"
+    gate: "quorumVerdict.passed == true"
+
+  - step: 6
+    name: "Deliver Enrichment Report"
+    agent: nirva
+    task: deliverEnrichmentReport
+    inputs:
+      - ".nce/report.md"
+      - ".nce/request.md"
+    outputs:
+      - ".claude/context-enrichment/{slug}.md"
+      - "executive summary (user-facing)"
+
+  - step: 7
+    name: "Cleanup Research Team"
+    agent: nirva
+    task: cleanupResearchTeam
+    always_runs: true
+    inputs:
+      - "pipelineState"
+    outputs:
+      - ".nce/history.jsonl"
+      - ".nce/archive/{timestamp}/"
+
+# --- Success Criteria ---
+success_indicators:
+  - "All 3 findings files written with status=complete"
+  - "Coverage quorum met (≥24 searches, ≥11 extractions)"
+  - "16-section report produced with zero empty sections"
+  - "Final report delivered to .claude/context-enrichment/{slug}.md"
+  - "Lifecycle cleanup completed (lock released, archive created)"
+
+# --- Transitions ---
+transitions:
+  request_parsed:
+    trigger: ".nce/request.md written and prerequisites met"
+    confidence: 0.95
+    greeting_message: "Request parsed. Dispatching parallel research team."
+    next_steps:
+      - command: "*dispatch-team"
+        description: "Fan-out 3 researchers"
+        priority: 1
+
+  team_dispatched:
+    trigger: "3 parallel subagents running"
+    confidence: 0.90
+    greeting_message: "Team dispatched. Sage, Scout, and Scholar are researching in parallel."
+    next_steps:
+      - command: "[wait for findings]"
+        description: "Research in progress (5-10 min)"
+        priority: 1
+
+  findings_complete:
+    trigger: "3 findings files written with status=complete"
+    confidence: 0.85
+    greeting_message: "Findings complete. Validating coverage quorum."
+    next_steps:
+      - command: "*validate-quorum"
+        description: "Enforce coverage join barrier"
+        priority: 1
+
+  quorum_passed:
+    trigger: "quorumVerdict.passed == true"
+    confidence: 0.95
+    greeting_message: "Quorum met. Handing off to Lotus for synthesis."
+    next_steps:
+      - command: "*synthesize-context-report"
+        description: "Merge 3 findings into 16-section report"
+        priority: 1
+
+  quorum_failed:
+    trigger: "quorumVerdict.passed == false"
+    confidence: 0.90
+    greeting_message: "Quorum not met. Retrying failing researcher(s)."
+    next_steps:
+      - command: "*dispatch-team --retry"
+        description: "Re-dispatch only failing researchers"
+        priority: 1
+
+  synthesis_complete:
+    trigger: ".nce/report.md written with 16 sections"
+    confidence: 0.90
+    greeting_message: "Synthesis complete. Delivering report."
+    next_steps:
+      - command: "*deliver-report"
+        description: "Save to .claude/context-enrichment/ and return path"
+        priority: 1
+
+  delivery_complete:
+    trigger: "Final report at .claude/context-enrichment/{slug}.md"
+    confidence: 0.98
+    greeting_message: "Report delivered. Running cleanup."
+    next_steps:
+      - command: "*cleanup-team"
+        description: "Release lifecycle resources"
+        priority: 1
+
+  pipeline_closed:
+    trigger: ".nce/lock removed and history appended"
+    confidence: 1.00
+    greeting_message: "NCE pipeline complete."
+    next_steps: []
+
+# --- Error Handling ---
+on_abort:
+  always_run: "*cleanup-team"
+  description: "Cleanup is a contract — runs on success, failure, and abort equally"

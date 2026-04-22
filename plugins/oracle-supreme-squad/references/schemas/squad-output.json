@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "oracle-supreme-squad output",
+  "type": "object",
+  "required": ["status", "artifacts"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "partial", "failed"]
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "type"],
+        "properties": {
+          "path": { "type": "string" },
+          "type": { "type": "string", "enum": ["report", "data", "config", "code", "analysis"] },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "summary": { "type": "string" },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "duration_ms": { "type": "number" },
+        "agent": { "type": "string" },
+        "task": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

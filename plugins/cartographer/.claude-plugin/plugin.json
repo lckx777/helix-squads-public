@@ -1,0 +1,18 @@
+{
+  "name": "cartographer",
+  "version": "1.0.0",
+  "description": "Cartographer — Ecosystem archaeology squad. Continuously excavates the monorepo, catalogs all artifacts (functions, agents, workflows, schemas, hooks, MCPs), maps real dependencies, and exposes this via CLI+MCP so every agent queries BEFORE acting. Enforces IDS: REUSE > ADAPT > CREATE.",
+  "author": {
+    "name": "lucac"
+  },
+  "license": "MIT",
+  "keywords": [
+    "aiox",
+    "squad",
+    "ecosystem",
+    "archaeology",
+    "knowledge-graph"
+  ],
+  "homepage": "https://github.com/lckx777/helix-squads-public/tree/main/plugins/cartographer",
+  "repository": "https://github.com/lckx777/helix-squads-public"
+}
