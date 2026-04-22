@@ -1,0 +1,422 @@
+name: "stack-auditors"
+version: 1.0.0
+description: "Stack Auditors — Celebrity-engineer mentor council for L4 superior audit. 11 mentors based on historical computing figures (Carmack, van-Rossum, Stonebraker, Torvalds, Jobs, Musk, Schneier, Kim, Beck, Newman, Norman) + sa-council orchestrator. Complements AIOX execution layer with verdicts grounded in evidence (fundamentation skills). Invoked by rules (70% paths-triggered) and hooks (30% catastrophic enforcement)."
+author: "lucac"
+license: MIT
+slashPrefix: sa
+
+# AIOS spec block (required by Squad Protocol v2.0.0 validator)
+aios:
+  minVersion: "2.1.0"
+  type: squad
+
+# Legacy aiox alias retained for backward compatibility with older harness consumers.
+aiox:
+  minVersion: "2.1.0"
+  type: squad
+
+orchestrator: sa-council
+
+tiers:
+  opus:
+    - sa-council          # Routing + synthesis orchestrator
+    - sa-carmack          # Real-time / performance / engine auditor
+    - sa-van-rossum       # Pythonic idiomatic auditor
+    - sa-stonebraker      # Database architecture auditor
+    - sa-torvalds         # Systems / kernel / concurrency auditor
+    - sa-jobs             # Product vision / UX taste auditor
+    - sa-musk             # First-principles engineering method auditor
+    - sa-schneier         # Security / threat modeling auditor
+    - sa-kim              # DevOps / flow / three-ways auditor
+    - sa-beck             # TDD / XP discipline auditor
+    - sa-newman           # Microservices / distributed architecture auditor
+    - sa-norman           # Cognitive UX / affordances auditor
+
+sub_squads:
+  - id: code-audit
+    name: "CODE AUDIT — Language & Performance"
+    icon: "⚙️"
+    agents: [sa-carmack, sa-van-rossum, sa-beck]
+  - id: data-infra
+    name: "DATA & INFRA — Systems Level"
+    icon: "🗄️"
+    agents: [sa-stonebraker, sa-torvalds, sa-kim]
+  - id: architecture
+    name: "ARCHITECTURE — Design & Systems"
+    icon: "🏛️"
+    agents: [sa-newman, sa-musk]
+  - id: product-ux
+    name: "PRODUCT & UX — Experience & Cognition"
+    icon: "✨"
+    agents: [sa-jobs, sa-norman]
+  - id: security
+    name: "SECURITY — Threat Modeling"
+    icon: "🛡️"
+    agents: [sa-schneier]
+  - id: orchestration
+    name: "COUNCIL — Routing & Synthesis"
+    icon: "🧠"
+    agents: [sa-council]
+
+components:
+  # NOTE: Paths in components.* are RELATIVE to the type directory (validator prefixes
+  # `agents/`, `tasks/`, `workflows/` automatically). Do NOT prepend `agents/` here.
+  agents:
+    - sa-council.md
+    - sa-carmack.md
+    - sa-van-rossum.md
+    - sa-stonebraker.md
+    - sa-torvalds.md
+    - sa-jobs.md
+    - sa-musk.md
+    - sa-schneier.md
+    - sa-kim.md
+    - sa-beck.md
+    - sa-newman.md
+    - sa-norman.md
+  tasks:
+    # Audit task primitives (invoked by chains)
+    - single-mentor-audit.md
+    - council-audit-parallel.md
+    - debate-sequence.md
+    - pre-implementation-audit.md
+    - post-implementation-review.md
+    - doctrine-extraction.md
+    # Workflow orchestrator tasks (s1_route → s2_execute → s3_log of stack-auditors-flow)
+    - route-to-chain.md
+    - execute-selected-chain.md
+    - log-to-journey-log.md
+  chains:
+    - chains/single-audit-chain.yaml
+    - chains/council-parallel-chain.yaml
+    - chains/debate-chain.yaml
+  checklists:
+    - checklists/veredict-quality-gate.md
+  config:
+    - config/persona-catalog.md
+    - config/invocation-rules.md
+    - config/source-tree.md
+  workflows:
+    - stack-auditors-flow.yaml
+
+gates:
+  - name: evidence-required
+    checklist: checklists/veredict-quality-gate.md
+    enforcer: sa-council
+    description: "Every verdict MUST cite evidence from a fundamentation skill. No opinion-only verdicts."
+
+routing:
+  audit-code-ts:        [sa-carmack]
+  audit-code-py:        [sa-van-rossum]
+  audit-testing:        [sa-beck]
+  audit-db:             [sa-stonebraker]
+  audit-infra:          [sa-torvalds]
+  audit-devops:         [sa-kim]
+  audit-architecture:   [sa-newman, sa-musk]
+  audit-product:        [sa-jobs]
+  audit-ux:             [sa-jobs, sa-norman]
+  audit-security:       [sa-schneier]
+  audit-requirements:   [sa-musk]
+  council-synthesis:    [sa-council]
+
+execution_model:
+  default: yolo
+  modes:
+    yolo: "Sequential inline persona swaps — zero human pauses, full visibility, specialist enforcement preserved"
+    interactive: "Same as yolo but pauses between steps for human confirmation"
+  reference: "docs/guides/yolo-execution-model.md"
+
+modes:
+  single-audit:
+    description: "Single-focus audit from one mentor — fastest path"
+    agents: [sa-council]  # council routes to exact mentor
+    pipeline:
+      - chains/single-audit-chain.yaml
+    gates: [evidence-required]
+    gate_threshold: 7.0
+
+  council-parallel:
+    description: "Parallel invocation of N mentors + synthesis — for ambiguous decisions"
+    agents: [sa-council]  # council spawns N mentors in parallel
+    pipeline:
+      - chains/council-parallel-chain.yaml
+    gates: [evidence-required]
+    gate_threshold: 8.0
+
+  debate-sequence:
+    description: "Sequential debate between 2+ mentors in tension — for clarity via friction"
+    agents: [sa-council]
+    pipeline:
+      - chains/debate-chain.yaml
+    gates: [evidence-required]
+    gate_threshold: 8.0
+
+  pre-implementation-audit:
+    description: "Bloqueio pre-impl para stories COMPLEX (>16 points)"
+    agents: [sa-council]
+    pipeline:
+      - chains/council-parallel-chain.yaml
+    gates: [evidence-required]
+    gate_threshold: 9.0
+
+  post-implementation-review:
+    description: "Pós-QA review para PRs high-stakes antes de @devops push"
+    agents: [sa-council]
+    pipeline:
+      - chains/council-parallel-chain.yaml
+    gates: [evidence-required]
+    gate_threshold: 8.0
+
+# Fundamentation skills — code workers (L1, não agents)
+fundamentation_skills:
+  enabled: true
+  path: ".claude/skills/sa-*"
+  mapping:
+    sa-carmack:      "sa-carmack-bench"
+    sa-van-rossum:   "sa-van-rossum-lint"
+    sa-stonebraker:  "sa-stonebraker-plan"
+    sa-torvalds:     "sa-torvalds-git"
+    sa-jobs:         "sa-jobs-taste"
+    sa-musk:         "sa-musk-requirements"
+    sa-schneier:     "sa-schneier-threat"
+    sa-kim:          "sa-kim-flow"
+    sa-beck:         "sa-beck-tdd"
+    sa-newman:       "sa-newman-services"
+    sa-norman:       "sa-norman-affordance"
+  output_schema: "Each skill produces structured YAML verdict with evidence citations; mentor must cite in final verdict"
+
+# Auto-activation — 70% rules, 30% hooks (Alan validation)
+auto_activation:
+  enabled: true
+  rules_path: ".claude/rules/sa-activation.md"
+  hook_path: ".claude/hooks/sa-gate-enforcement.cjs"
+  split_ratio:
+    rules_primary: 0.70   # declarative, path-triggered, advisory
+    hooks_enforcement: 0.30  # catastrophic-only (git commit + @devops push)
+  path_triggers:
+    - "packages/**/migrations/**"     # → sa-stonebraker
+    - "packages/vps-api/auth/**"      # → sa-schneier
+    - "hub/src/lib/components/**"     # → sa-jobs + sa-norman
+    - "packages/**/*.perf.ts"         # → sa-carmack
+    - "mega-brain/**/*.py"            # → sa-van-rossum
+    - "docs/architecture/**"          # → sa-newman + sa-musk
+    - ".github/workflows/**"          # → sa-kim
+    - "packages/**/__tests__/**"      # → sa-beck
+
+# Observability — journey log day-0 (Alan BS3 requirement)
+observability:
+  enabled: true
+  journey_log_path: ".claude/stack-auditors/journey-log/"
+  schema_file: "_schema.yaml"
+  kill_criterion:
+    metric: "decision_changed"
+    threshold: 0.10   # <10% in 30d → squad is theater, mata
+    review_period_days: 30
+  expand_criterion:
+    metric: "decision_changed"
+    threshold: 0.30   # >=30% in 30d → expand/scale
+  metrics_script: "scripts/stack-auditors/metrics.sh"
+
+# Integration with AIOX layer (Q1=B — complementary not substitutive)
+aiox_integration:
+  relationship: "complementary"
+  invocation_from_aiox:
+    - aiox_agent: "@dev"
+      trigger: "before implementing COMPLEX story (>16 points)"
+      invoke: "Agent(subagent_type='sa-council', prompt='pre-impl audit for {story}')"
+    - aiox_agent: "@qa"
+      trigger: "PR touches security-critical paths"
+      invoke: "Agent(subagent_type='sa-schneier', prompt='threat review {pr}')"
+    - aiox_agent: "@architect"
+      trigger: "tech choice decision (DB, framework, architecture)"
+      invoke: "Agent(subagent_type='sa-council', prompt='council parallel {decision}')"
+    - aiox_agent: "@ux-design-expert"
+      trigger: "UI design produced"
+      invoke: "Agent(subagent_type='sa-jobs', prompt='taste review {design}')"
+  invocation_to_aiox:
+    description: "Mentors NEVER implement — always delegate execution to AIOX. Mentor decides WHY+EVIDENCE; AIOX decides HOW+DO."
+
+cross_squad_consumers:
+  - squad: "cartographer"
+    consumes: []
+    reason: "Could invoke sa-newman for architecture audit of artifact graph"
+  - squad: "copy-chief"
+    consumes: []
+    reason: "Could invoke sa-jobs for taste audit on copy deliverables"
+  - squad: "aiox-dev-squad"
+    consumes: []
+    reason: "Primary consumer — @dev, @qa, @architect invoke mentors via routing rules"
+
+tags:
+  - aiox
+  - aiox
+  - squad
+  - squad
+  - audit
+  - audit
+  - mentorship
+  - mentorship
+  - celebrity-engineer
+  - celebrity-engineer
+  - L4-layer
+  - L4-layer
+  - verdict
+  - verdict
+  - evidence-based
+  - evidence-based
+  - fundamentation
+  - fundamentation
+  - auto-activation
+  - auto-activation
+
+
+ux_hints:
+  branding:
+    brand_name: "Stack Auditors"
+    tagline: "L4 mentor council — verdict with evidence, not opinion"
+    icon: "gavel"
+    accent_color: "#8b5cf6"
+  landing:
+    sections:
+      - type: "context_summary"
+        title: "What this does"
+        description: "Invoke historical computing figures as L4 mentors for verdict on high-stakes decisions"
+        bullets:
+          - "12 agents: 11 mentors + sa-council orchestrator"
+          - "Evidence-based: each mentor invokes fundamentation skill before verdict"
+          - "Auto-activated: 70% path rules + 30% catastrophic hooks"
+          - "Observable: journey log tracks decision_changed metric"
+      - type: "action_card"
+        title: "Single Mentor Audit"
+        description: "Single-focus verdict from one mentor — fastest"
+        cta: "Audit"
+        href: "/apps/stack-auditors/modes/single-audit"
+        icon: "user-check"
+        requires: ["audit:execute"]
+      - type: "action_card"
+        title: "Council Parallel"
+        description: "Multiple mentors, synthesized verdict — for ambiguous decisions"
+        cta: "Convene"
+        href: "/apps/stack-auditors/modes/council-parallel"
+        icon: "users"
+        requires: ["audit:execute"]
+      - type: "action_card"
+        title: "Debate Sequence"
+        description: "Mentors in tension debate — clarity via friction"
+        cta: "Debate"
+        href: "/apps/stack-auditors/modes/debate-sequence"
+        icon: "message-square"
+        requires: ["audit:execute"]
+  modes:
+    - name: "single-audit"
+      label: "Single Mentor"
+      icon: "user-check"
+      requires: ["audit:execute"]
+    - name: "council-parallel"
+      label: "Council Parallel"
+      icon: "users"
+      requires: ["audit:execute"]
+    - name: "debate-sequence"
+      label: "Debate"
+      icon: "message-square"
+      requires: ["audit:execute"]
+    - name: "pre-implementation-audit"
+      label: "Pre-Impl Audit"
+      icon: "shield-check"
+      requires: ["audit:execute", "pipeline:approve"]
+    - name: "post-implementation-review"
+      label: "Post-Impl Review"
+      icon: "check-square"
+      requires: ["audit:execute", "pipeline:approve"]
+
+profiles:
+  admin:
+    description: "Full access — invoke any mentor, see journey log, tune activation rules"
+    capabilities:
+      - "audit:execute"
+      - "audit:approve"
+      - "pipeline:approve"
+      - "observability:read"
+      - "observability:tune"
+      - "admin:manage"
+  operator:
+    description: "Invoke mentors, read journey log"
+    capabilities:
+      - "audit:execute"
+      - "observability:read"
+  viewer:
+    description: "Read journey log only"
+    capabilities:
+      - "observability:read"
+
+# Harness Configuration (v3 — Squad Protocol Engine v4.0.0)
+# Calibrated for L4 mentor council: high evidence threshold, debate stability, journey-log integration.
+harness:
+  # Doom Loop Detection — critical for debate-sequence mode (mentors in tension can ping-pong)
+  doom_loop:
+    enabled: true
+    max_identical_outputs: 3
+    similarity_threshold: 0.95
+    on_detect: change-strategy   # change-strategy: route to alternate mentor or escalate to sa-council synthesis
+
+  # Ralph Loop — fresh context retry for inconclusive verdicts (rare but bounded)
+  ralph_loop:
+    enabled: true
+    max_iterations: 5
+    persist_state: true
+
+  # Context Compaction — preserve verdict YAML schema across mentor handoffs (council-parallel)
+  context_compaction:
+    enabled: true
+    strategy: key-fields
+    max_handoff_tokens: 4000
+    preserve_schema_fields: true
+
+  # Filesystem Collaboration — aligned with existing observability.journey_log_path
+  filesystem_collaboration:
+    enabled: true
+    artifact_dir: .claude/stack-auditors/journey-log
+    cleanup: manual              # journey log is permanent record (kill_criterion review_period_days: 30)
+
+  # Execution Traces — squad treats observability as first-class (BS3 Alan requirement)
+  traces:
+    enabled: true
+    level: standard
+    include_outputs: false       # verdicts already persisted to journey-log; avoid duplication
+
+  # Self-Verify — aligned with gate `evidence-required` (every verdict must cite fundamentation skill)
+  self_verify:
+    default_enabled: true
+
+  # Quality Framework — threshold 7.0 matches mode `single-audit`; council/debate enforce 8.0 via mode gates
+  quality_framework:
+    enabled: true
+    threshold: 7.0
+    dimensions:
+      accuracy:              { weight: 1.0, threshold: 7.0, veto: true }   # verdict must be technically correct
+      coherence:             { weight: 0.9, threshold: 7.0, veto: false }  # internal logical consistency
+      research_depth:        { weight: 1.0, threshold: 8.0, veto: true }   # mentor must invoke fundamentation skill
+      decision_objectivity:  { weight: 0.9, threshold: 7.0, veto: false }  # bias check
+      evidence_quality:      { weight: 1.0, threshold: 8.0, veto: true }   # gate `evidence-required` enforcement
+
+
+# v3 state — checkpoint dir per-project
+state:
+  enabled: true
+  storage: file
+  checkpoint_dir: "${PROJECT_CWD:-$PWD}/.squad-state/stack-auditors"
+  resume: true
+  retention: 10
+
+# v3 model_strategy — prevent silent downgrade
+model_strategy:
+  orchestrator: "claude-opus-4-7"
+  workers: "claude-sonnet-4-6"
+  reviewers: "claude-opus-4-7"
+  override: true
+
+# Portability — distinguishes global vs per-project assets
+portability:
+  global_home: "${SQUAD_HOME:-$HOME/.claude/skills/squads/squads/stack-auditors}"
+  project_data_path: "${PROJECT_CWD:-$PWD}"
+  resolved_by: "scripts/install-squads-to-global.sh"

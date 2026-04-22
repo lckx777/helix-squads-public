@@ -1,0 +1,64 @@
+chain: council-parallel-chain
+chain_id: council-parallel-chain        # alias (Chain Protocol v2.0)
+version: 1.0.0
+parent_workflow: stack-auditors-flow
+parent_step: s2_execute
+owner: stack-auditors
+description: sa-council spawns N mentors in parallel, each audits with own skill, council synthesizes
+execution_mode: parallel_then_synthesize
+executor: sa-council
+
+micro_tasks:
+  - id: mt001
+    executor: sa-council
+    task: select_mentors
+    task_detail: "Analyze target for domain signals. Select ≥3 mentors covering distinct lenses."
+    description: "Pick ≥3 mentors covering distinct audit domains for the target."
+    criticality: blocker
+    severity: blocker                    # alias (chain-format-spec)
+    output_contract: "mentors_list (len ≥ 3)"
+    gate: "No duplicate mentors; each covers distinct audit_domain"
+    handoff_to: parallel_spawn
+
+  - id: mt002
+    executor: multiple_in_parallel
+    task: per_mentor_audit
+    task_detail: "For each selected mentor, spawn Agent() in single message with parallel tool calls. Each mentor runs single-audit-chain internally."
+    description: "Spawn N mentors in parallel; each runs single-audit-chain + returns verdict."
+    criticality: blocker
+    severity: blocker
+    output_contract: "per_mentor_verdicts dict {mentor_id: {verdict, evidence, summary}}"
+    gate: "All mentors completed (no timeouts), all evidence_cited: true"
+    handoff_to: sa-council
+
+  - id: mt003
+    executor: sa-council
+    task: synthesize_verdicts
+    task_detail: |
+      Aggregate per-mentor verdicts into council_verdict:
+      - any `blocked` → council = `blocked`
+      - else if any `concerns` → council = `concerns`
+      - else all `approved` → council = `approved`
+      Produce synthesis text that acknowledges dissent, not consensus-washed.
+    description: "Aggregate per-mentor verdicts into council verdict without flattening dissent."
+    criticality: blocker
+    severity: blocker
+    output_contract: "council_verdict + council_summary + dissent[]"
+    gate: "Dissent list is non-empty if any mentor not approved; synthesis mentions each mentor's key finding"
+    handoff_to: sa-council
+
+  - id: mt004
+    executor: sa-council
+    task: log_journey_multiple
+    task_detail: "Write N mentor entries + 1 council synthesis entry to journey log"
+    description: "Persist N+1 entries (per-mentor + synthesis) with cross-references to journey log."
+    criticality: blocker
+    severity: blocker
+    output_contract: "N+1 journey log entries with cross-references (synthesis references mentor entry IDs)"
+    gate: "All entries schema-valid"
+    handoff_to: END
+
+chain_gate:
+  condition: "≥3 distinct mentors audited AND all per-mentor verdicts have evidence_cited=true AND council_verdict is one of {approved, concerns, blocked} AND dissent[] correctly reflects non-approved verdicts AND N+1 journey log entries written AND veredict-quality-gate.md MUST items satisfied"
+  enforcer: sa-council
+  on_fail: "Escalate to operator; rerun synthesis or respawn failed mentor(s)."

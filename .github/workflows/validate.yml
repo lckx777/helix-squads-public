@@ -1,0 +1,48 @@
+name: Validate Marketplace
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Validate plugins and marketplace.json
+        run: python3 scripts/validate-plugins.py
+
+      - name: Verify marketplace.json is up-to-date
+        run: |
+          cp .claude-plugin/marketplace.json /tmp/marketplace.before.json
+          python3 scripts/build-marketplace.py
+          if ! diff -q /tmp/marketplace.before.json .claude-plugin/marketplace.json; then
+            echo "::error::marketplace.json is stale — run scripts/build-marketplace.py and commit"
+            diff /tmp/marketplace.before.json .claude-plugin/marketplace.json || true
+            exit 1
+          fi
+          echo "marketplace.json is in sync with plugins/"
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

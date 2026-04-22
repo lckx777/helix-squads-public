@@ -1,0 +1,31 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "helix-squads-public",
+  "description": "Helix Squads — Public Marketplace for Claude Code. Infrastructure and meta-tooling squads (cartographer, claude-code-mastery, incident-response-squad, stack-auditors, synthetic-intelligence-factory, nirvana-squad-creator, nirvana-context-enricher, oracle-supreme-squad).",
+  "owner": {
+    "name": "Luca Pimenta",
+    "email": "lckx777@users.noreply.github.com"
+  },
+  "metadata": {
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "stack-auditors",
+      "source": "./plugins/stack-auditors",
+      "description": "Stack Auditors — Celebrity-engineer mentor council for L4 superior audit. 11 mentors based on historical computing figures (Carmack, van-Rossum, Stonebraker, Torvalds, Jobs, Musk, Schneier, Kim, Beck, Newman, Norman) + sa-council orchestrator. Complements AIOX execution layer with verdicts grounded in evidence (fundamentation skills). Invoked by rules (70% paths-triggered) and hooks (30% catastrop",
+      "version": "1.0.0",
+      "author": {
+        "name": "lucac"
+      },
+      "keywords": [
+        "aiox",
+        "squad",
+        "audit",
+        "mentorship",
+        "celebrity-engineer"
+      ],
+      "homepage": "https://github.com/lckx777/helix-squads-public/tree/main/plugins/stack-auditors"
+    }
+  ]
+}

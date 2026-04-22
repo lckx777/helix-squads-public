@@ -1,0 +1,129 @@
+name: stack-auditors-flow
+workflow_name: stack_auditors_flow   # snake_case alias required by Squad Protocol v2.0.0 validator
+workflow_id: stack-auditors-flow     # alias for AIOX routing convention
+squad: stack-auditors
+version: 1.0.0
+description: Top-level workflow routing for stack-auditors squad. Determines which chain to run based on invocation context.
+default_execution_mode: yolo
+
+# Canonical agent sequence — entry agent first, then chains delegated by routing.
+# (sa-council is the single entry/exit agent; chains spawn specialist mentors per routing rules.)
+agent_sequence:
+  - sa-council
+
+# Workflow-level success indicators (required by validator).
+success_indicators:
+  - "Routing rule selected exactly one chain (single-audit | council-parallel | debate)"
+  - "Selected chain ran to completion with verdict (approved | concerns | blocked)"
+  - "Every mentor verdict cited evidence from its fundamentation skill (gate evidence-required PASS)"
+  - "Journey log entry persisted under .claude/stack-auditors/journey-log/{date}.yaml"
+  - "auto_handoff respected exception list (@devops *push, gate_fail, mentor_verdict == blocked)"
+
+# Entry point — every invocation starts here
+entry: sa-council
+
+# Canonical step sequence (flat format compliance).
+# Every invocation passes through: route → execute_chain → log.
+# The `routing:` block below is the declarative expression of step `s1_route`.
+steps:
+  - id: s1_route
+    name: route_invocation
+    agent: sa-council
+    execution_context: inline
+    task: route-to-chain
+    description: "Analyze input (mode, trigger, path, explicit_mentor, story complexity) and select chain + mentors per routing rules."
+    output_contract: "chain_selected ∈ {single-audit-chain, council-parallel-chain, debate-chain} + optional mentor/mentors_selected"
+
+  - id: s2_execute
+    name: execute_selected_chain
+    agent: sa-council
+    execution_context: subagent
+    task: execute-selected-chain
+    description: "Delegate execution to the chain selected in s1_route. Chain runs its own micro_tasks sequence."
+    chain: "{chain_selected}"
+    output_contract: "verdict + skill_evidence + dissent[] (when multi-mentor)"
+
+  - id: s3_log
+    name: persist_journey_log
+    agent: sa-council
+    execution_context: inline
+    task: log-to-journey-log
+    description: "Write verdict entries + synthesis to journey log per _schema.yaml. Enforced by evidence-required gate."
+    output_contract: "journey log entry(ies) at .claude/stack-auditors/journey-log/{date}.yaml"
+
+# Routing rules — mode selection based on input (expression of s1_route)
+routing:
+  # 1. Explicit mode requested
+  - condition: "input.mode == 'single-audit'"
+    chain: single-audit-chain
+  - condition: "input.mode == 'council-parallel'"
+    chain: council-parallel-chain
+  - condition: "input.mode == 'debate-sequence'"
+    chain: debate-chain
+
+  # 2. Pre-implementation — story frontmatter complexity XL
+  - condition: "input.story_frontmatter.complexity == 'XL' || input.story_frontmatter.complexity == 'COMPLEX'"
+    chain: council-parallel-chain
+    task: pre-implementation-audit
+
+  # 3. Post-implementation — PR high-stakes
+  - condition: "input.trigger == 'post-pr' && input.pr.high_stakes == true"
+    chain: council-parallel-chain
+    task: post-implementation-review
+
+  # 4. Explicit mentor mention in question
+  - condition: "input.explicit_mentor != null"
+    chain: single-audit-chain
+    mentor: "{input.explicit_mentor}"
+
+  # 5. Path-triggered from rule
+  - condition: "input.trigger == 'rule' && input.mentors_selected.length == 1"
+    chain: single-audit-chain
+    mentor: "{input.mentors_selected[0]}"
+
+  - condition: "input.trigger == 'rule' && input.mentors_selected.length > 1"
+    chain: council-parallel-chain
+    mentors: "{input.mentors_selected}"
+
+  # 6. Default — semantic routing by sa-council
+  - condition: "default"
+    chain: single-audit-chain
+    routing_agent: sa-council
+
+gates:
+  - name: evidence-required
+    applies_to: [single-audit-chain, council-parallel-chain, debate-chain]
+    checklist: squads/stack-auditors/checklists/veredict-quality-gate.md
+
+observability:
+  journey_log_required: true
+  log_path: ".claude/stack-auditors/journey-log/{YYYY-MM-DD}.yaml"
+  schema: ".claude/stack-auditors/journey-log/_schema.yaml"
+
+auto_handoff:
+  enabled: true
+  exceptions:
+    - "@devops *push"                    # never auto
+    - gate_fail                          # escalate
+    - mentor_verdict == 'blocked'        # stop chain
+
+integration_points:
+  aiox_layer:
+    - invoked_by: "@dev pre-implementation"
+      mode: pre-implementation-audit
+      condition: "story.complexity == 'XL'"
+    - invoked_by: "@qa post-PASS"
+      mode: post-implementation-review
+      condition: "pr.high_stakes == true"
+    - invoked_by: "@architect decision"
+      mode: council-parallel
+      condition: "architectural choice"
+
+  rule_triggered:
+    - rule: ".claude/rules/sa-activation.md"
+      mode: single-audit OR council-parallel (depending on path → mentor mapping)
+
+  hook_triggered:
+    - hook: ".claude/hooks/sa-gate-enforcement.cjs"
+      mode: pre-implementation-audit OR post-implementation-review
+      blocking: true

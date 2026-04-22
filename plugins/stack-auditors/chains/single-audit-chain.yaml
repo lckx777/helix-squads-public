@@ -1,0 +1,59 @@
+chain: single-audit-chain
+chain_id: single-audit-chain            # alias (Chain Protocol v2.0)
+version: 1.0.0
+parent_workflow: stack-auditors-flow
+parent_step: s2_execute
+owner: stack-auditors
+description: Fastest path — sa-council routes to single mentor, mentor audits with skill, returns verdict
+execution_mode: sequential_uninterrupted
+executor: sa-council
+
+micro_tasks:
+  - id: mt001
+    executor: sa-council
+    task: route_to_mentor
+    task_detail: "Based on target domain, explicit mentor param, or path matching"
+    description: "Route invocation to single mentor based on domain/explicit-mentor/path."
+    criticality: blocker
+    severity: blocker                    # alias (chain-format-spec)
+    output_contract: "Single mentor ID selected + reason"
+    gate: "Mentor is valid sa-* ID"
+    handoff_to: "{selected_mentor}"
+
+  - id: mt002
+    executor: "{selected_mentor}"
+    task: invoke_fundamentation_skill
+    task_detail: "Execute associated Skill to produce structured YAML evidence"
+    description: "Mentor invokes its fundamentation skill to generate evidence."
+    criticality: blocker
+    severity: blocker
+    output_contract: "skill_evidence YAML matching skill output_schema"
+    gate: "evidence_cited-able (non-empty, schema-valid)"
+    handoff_to: same_mentor
+
+  - id: mt003
+    executor: "{selected_mentor}"
+    task: produce_verdict
+    task_detail: "Cite skill evidence in 1-2 sentence verdict. verdict ∈ {approved,concerns,blocked,advisory}"
+    description: "Mentor produces verdict citing concrete evidence from skill output."
+    criticality: blocker
+    severity: blocker
+    output_contract: "verdict + verdict_summary + evidence_cited:true"
+    gate: "verdict_summary mentions at least one concrete data point from skill_evidence"
+    handoff_to: sa-council
+
+  - id: mt004
+    executor: sa-council
+    task: log_journey
+    task_detail: "Append entry to .claude/stack-auditors/journey-log/{date}.yaml per _schema.yaml"
+    description: "Persist verdict + evidence to journey log for observability metrics."
+    criticality: blocker
+    severity: blocker
+    output_contract: "invocation entry ID + verdict recorded"
+    gate: "All required schema fields present"
+    handoff_to: END
+
+chain_gate:
+  condition: "All 4 micro_tasks PASS gates AND verdict ∈ {approved, concerns, blocked, advisory} AND evidence_cited=true AND journey log entry written AND veredict-quality-gate.md MUST items satisfied"
+  enforcer: sa-council
+  on_fail: "Escalate to operator; mentor prompted to revise verdict with specific failure cited."

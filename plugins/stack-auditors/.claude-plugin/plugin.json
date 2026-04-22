@@ -1,0 +1,18 @@
+{
+  "name": "stack-auditors",
+  "version": "1.0.0",
+  "description": "Stack Auditors — Celebrity-engineer mentor council for L4 superior audit. 11 mentors based on historical computing figures (Carmack, van-Rossum, Stonebraker, Torvalds, Jobs, Musk, Schneier, Kim, Beck, Newman, Norman) + sa-council orchestrator. Complements AIOX execution layer with verdicts grounded in evidence (fundamentation skills). Invoked by rules (70% paths-triggered) and hooks (30% catastrop",
+  "author": {
+    "name": "lucac"
+  },
+  "license": "MIT",
+  "keywords": [
+    "aiox",
+    "squad",
+    "audit",
+    "mentorship",
+    "celebrity-engineer"
+  ],
+  "homepage": "https://github.com/lckx777/helix-squads-public/tree/main/plugins/stack-auditors",
+  "repository": "https://github.com/lckx777/helix-squads-public"
+}

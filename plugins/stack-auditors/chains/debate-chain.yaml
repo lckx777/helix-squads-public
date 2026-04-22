@@ -1,0 +1,99 @@
+chain: debate-chain
+chain_id: debate-chain                  # alias (Chain Protocol v2.0)
+version: 1.0.0
+parent_workflow: stack-auditors-flow
+parent_step: s2_execute
+owner: stack-auditors
+description: Sequential debate between 2 mentors in productive tension. Council frames tension, mentors debate N rounds, council synthesizes without flattening.
+execution_mode: sequential_rounds
+executor: sa-council
+
+micro_tasks:
+  - id: mt001
+    executor: sa-council
+    task: frame_tension
+    task_detail: |
+      Declare the tension explicitly. Format: "mentor_a argues POSITION_A; mentor_b argues POSITION_B.
+      Core disagreement: {topic}. Productive friction expected around {dimension}."
+    description: "Frame the explicit tension between mentor_a and mentor_b on the core topic."
+    criticality: blocker
+    severity: blocker                    # alias (chain-format-spec)
+    output_contract: "framing_statement + tension_dimension"
+    gate: "Tension is real (both mentors have `tensions: [other]` in relationships)"
+    handoff_to: mentor_a
+
+  - id: mt002
+    executor: mentor_a
+    task: opening_position_round1
+    task_detail: "State position + invoke fundamentation skill for evidence."
+    description: "Mentor A opens round 1 with position + fundamentation evidence."
+    criticality: blocker
+    severity: blocker
+    output_contract: "position_text + skill_evidence"
+    gate: "evidence_cited: true"
+    handoff_to: mentor_b
+
+  - id: mt003
+    executor: mentor_b
+    task: rebuttal_round1
+    task_detail: "Counter mentor_a's position with own skill evidence. Acknowledge valid points."
+    description: "Mentor B rebuts round 1 with counter-evidence; must concede something."
+    criticality: blocker
+    severity: blocker
+    output_contract: "rebuttal_text + skill_evidence + conceded_points[]"
+    gate: "evidence_cited: true; conceded_points[] non-empty (must acknowledge SOMETHING valid)"
+    handoff_to: mentor_a
+
+  - id: mt004
+    executor: mentor_a
+    task: refinement_round2
+    task_detail: "Refine position incorporating mentor_b's valid points. Narrower claim."
+    description: "Mentor A refines position in round 2, incorporating B's valid points."
+    criticality: blocker
+    severity: blocker
+    output_contract: "refined_position + conceded_to_b[]"
+    gate: "Position is narrower/more-specific than round 1; conceded_to_b non-empty"
+    handoff_to: mentor_b
+
+  - id: mt005
+    executor: mentor_b
+    task: refinement_round2
+    task_detail: "Same — refine position incorporating mentor_a's valid points."
+    description: "Mentor B refines position in round 2, incorporating A's valid points."
+    criticality: recoverable
+    severity: recoverable
+    output_contract: "refined_position + conceded_to_a[]"
+    gate: "Position is narrower; conceded_to_a non-empty"
+    handoff_to: sa-council
+
+  - id: mt006
+    executor: sa-council
+    task: synthesize_without_flattening
+    task_detail: |
+      Produce synthesis surfacing:
+      1. What both converge on (agreement)
+      2. Core irreducible tradeoff (disagreement)
+      3. Situational recommendation: "If X, go with mentor_a; if Y, go with mentor_b"
+      Do NOT consensus-wash. Preserve the tension as information.
+    description: "Council synthesizes debate into agreement + core tradeoff + situational recommendations."
+    criticality: blocker
+    severity: blocker
+    output_contract: "agreement + core_tradeoff + situational_recommendation[]"
+    gate: "situational_recommendation has ≥2 branches (if X/if Y)"
+    handoff_to: sa-council
+
+  - id: mt007
+    executor: sa-council
+    task: log_debate_journey
+    task_detail: "Write debate rounds + synthesis to journey log as single grouped entry"
+    description: "Persist debate rounds + synthesis to journey log as a grouped entry."
+    criticality: blocker
+    severity: blocker
+    output_contract: "grouped journey log entry"
+    gate: "Schema-valid"
+    handoff_to: END
+
+chain_gate:
+  condition: "Tension is real AND both mentors provided evidence_cited=true in round 1 AND both conceded ≥1 point each AND round-2 positions are narrower than round-1 AND synthesis preserves tension (≥2 situational branches, no consensus-washing) AND journey log grouped entry written AND veredict-quality-gate.md MUST items satisfied"
+  enforcer: sa-council
+  on_fail: "Escalate to operator; mentors may re-argue or extra round added."
